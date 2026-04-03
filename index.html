@@ -718,7 +718,7 @@ async function runSearch(prompt,isRoute){
             displayFallback(data);
             document.getElementById('toolbar').style.display='none';
         }
-        if(lastResultText)localStorage.setItem('cached_result',JSON.stringify({text:lastResultText,time:Date.now()}));
+        if(lastResultText)localStorage.setItem('cached_result',JSON.stringify({text:lastResultText,time:Date.now(),routes:lastParsedRoutes||null}));
     }catch(err){showError(`エラー: ${err.message}`);}finally{setLoading(false);}
 }
 
@@ -1355,7 +1355,7 @@ function showError(msg){document.getElementById('results').innerHTML=`<div class
 function ea(s){return s.replace(/'/g,"\\'").replace(/"/g,'&quot;');}
 
 // オフラインキャッシュ読み込み
-window.addEventListener('load',()=>{try{const c=JSON.parse(localStorage.getItem('cached_result')||'null');if(c&&typeof c.text==='string'&&Date.now()-c.time<3600000){document.getElementById('results').innerHTML=`<div class="result-card" style="opacity:0.6;"><h3>前回の検索結果</h3><div class="result-content">${mdToHtml(c.text)}</div></div>`;}}catch{}});
+window.addEventListener('load',()=>{try{const c=JSON.parse(localStorage.getItem('cached_result')||'null');if(c&&Date.now()-c.time<3600000){if(c.routes&&c.routes.routes&&c.routes.routes.length){lastParsedRoutes=c.routes;lastResultText=c.text||'';renderRouteCards(c.routes,{output_text:c.text||''});document.getElementById('toolbar').style.display='flex';updateFavBtn();}else if(typeof c.text==='string'&&c.text){lastResultText=c.text;document.getElementById('results').innerHTML=`<div class="result-card" style="opacity:0.7;"><h3>前回の検索結果</h3><div class="result-content">${mdToHtml(c.text)}</div></div>`;}}}catch(e){console.log('[Cache] restore error:',e);}});
 
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('searchBtn').disabled){const a=document.activeElement;if(['fromStation','toStation','viaStation','trainName'].includes(a.id))doSearch();}});
 </script>
