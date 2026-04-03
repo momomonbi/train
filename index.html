@@ -113,7 +113,9 @@
         .tl-station-platform { font-size: 13px; color: #94a3b8; margin-left: 4px; }
 
         .tl-ride { padding: 6px 0 6px 0; margin-left: 0; }
-        .tl-ride-line { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+        .tl-ride-line { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+        /* 路線記号バッジ（丸型） */
+        .line-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; border-radius: 50%; font-size: 11px; font-weight: 800; color: #fff; letter-spacing: -0.5px; line-height: 1; padding: 0 3px; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.3); }
         .tl-ride-detail { font-size: 13px; color: #94a3b8; line-height: 1.5; }
         .tl-ride-detail span { margin-right: 10px; }
 
@@ -277,6 +279,14 @@
             <div><label>歩く速度</label><select id="walkSpeed"><option value="slow">ゆっくり</option><option value="slightly_slow">少しゆっくり</option><option value="normal" selected>標準</option><option value="slightly_fast">少し急ぎ</option><option value="fast">急いで</option></select></div>
         </div>
 
+        <!-- 優先クイックボタン -->
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="priorityBtns">
+            <button class="tool-btn active" onclick="setPriority('recommended',this)">おすすめ</button>
+            <button class="tool-btn" onclick="setPriority('fast',this)" style="color:#60a5fa;">最速</button>
+            <button class="tool-btn" onclick="setPriority('cheap',this)" style="color:#34d399;">最安</button>
+            <button class="tool-btn" onclick="setPriority('less_transfer',this)" style="color:#fbbf24;">最楽</button>
+        </div>
+
         <div class="check-row" id="checkRow">
             <label class="check-label"><input type="checkbox" id="optBarrierFree" /> バリアフリー</label>
             <label class="check-label"><input type="checkbox" id="optBoardingPos" checked /> 乗車位置</label>
@@ -343,10 +353,35 @@ const LINE_COLORS = {
     '東海道新幹線':'#005daa','東北新幹線':'#00a651','北陸新幹線':'#7b439a',
     default:'#60a5fa'
 };
+// 路線記号マップ（公式駅ナンバリング準拠）
+const LINE_CODES = {
+    '山手線':'JY','京浜東北':'JK','中央線快速':'JC','中央線':'JC','中央・総武':'JB','総武線':'JB',
+    '東海道線':'JT','横須賀線':'JO','総武快速':'JO','埼京線':'JA','湘南新宿':'JS','京葉線':'JE',
+    '宇都宮線':'JU','高崎線':'JU','常磐線':'JJ','横浜線':'JH','南武線':'JN','武蔵野線':'JM',
+    '丸ノ内線':'M','銀座線':'G','日比谷線':'H','東西線':'T','千代田線':'C',
+    '有楽町線':'Y','半蔵門線':'Z','南北線':'N','副都心線':'F',
+    '都営浅草線':'A','都営三田線':'I','都営新宿線':'S','都営大江戸線':'E',
+    '東急東横線':'TY','東急田園都市線':'DT','東急目黒線':'MG','東急池上線':'IK','東急大井町線':'OM',
+    '小田急線':'OH','小田急':'OH','京王線':'KO','京王井の頭線':'IN',
+    '西武池袋線':'SI','西武新宿線':'SS','東武東上線':'TJ','東武スカイツリー':'TS','東武伊勢崎':'TS',
+    '京急線':'KK','京急':'KK','京成線':'KS','京成':'KS','つくばエクスプレス':'TX',
+    '東海道新幹線':'🚅','東北新幹線':'🚅','北陸新幹線':'🚅','上越新幹線':'🚅','山陽新幹線':'🚅','九州新幹線':'🚅',
+    // 関西
+    '御堂筋線':'M','谷町線':'T','四つ橋線':'Y','中央線（大阪）':'C','千日前線':'S','堺筋線':'K','長堀鶴見緑地線':'N',
+    '阪急神戸線':'HK','阪急宝塚線':'HK','阪急京都線':'HK','阪神本線':'HS',
+    '近鉄':'A','南海':'NK','京阪':'KH',
+    // 名古屋
+    '東山線':'H','名城線':'M','鶴舞線':'T','桜通線':'S',
+};
 function getLineColor(name) {
     if (!name) return LINE_COLORS.default;
     for (const [k,v] of Object.entries(LINE_COLORS)) { if (name.includes(k)) return v; }
     return LINE_COLORS.default;
+}
+function getLineCode(name) {
+    if (!name) return '';
+    for (const [k,v] of Object.entries(LINE_CODES)) { if (name.includes(k)) return v; }
+    return '';
 }
 
 // ===== 状態 =====
@@ -379,6 +414,13 @@ function setMode(mode){
     const db=document.querySelector('.detail-toggle');db.style.display=mode==='route'?'':'none';db.textContent='\u25B6 詳細設定';
     const btn=document.getElementById('searchBtn');
     btn.textContent={route:'経路を検索',timetable:'時刻表を検索',commuter:'定期代を検索',status:'運行情報を取得'}[mode];
+}
+
+// ===== 優先クイックボタン =====
+function setPriority(val, btn) {
+    document.getElementById('priority').value = val;
+    document.querySelectorAll('#priorityBtns .tool-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 }
 
 // ===== 音声・GPS・入れ替え =====
@@ -491,6 +533,7 @@ ${wm[p.walkText]||''}
           "to": "駅名",
           "toPlatform": "○番線",
           "line": "路線名",
+          "lineCode": "路線記号（例: JY, M, G, TY, OH等。不明なら空文字）",
           "direction": "○○方面",
           "trainType": "種別（快速等）",
           "departureTime": "HH:MM",
@@ -596,7 +639,7 @@ function displayRouteResult(data){
                         <span class="tl-station-platform">${esc(seg.fromPlatform||'')}</span>
                     </div>
                     <div class="tl-ride">
-                        <div class="tl-ride-line" style="background:${color}22;color:${color};border:1px solid ${color}44;">${esc(seg.line)} ${seg.trainType?esc(seg.trainType):''}</div>
+                        <div class="tl-ride-line" style="background:${color}22;color:${color};border:1px solid ${color}44;">${(()=>{const code=seg.lineCode||getLineCode(seg.line);return code?`<span class="line-badge" style="background:${color};">${esc(code)}</span>`:''})()}${esc(seg.line)} ${seg.trainType?esc(seg.trainType):''}</div>
                         <div class="tl-ride-detail">
                             <span>${esc(seg.direction||'')}</span>
                             ${seg.boardingPosition?`<span>乗車位置: ${esc(seg.boardingPosition)}</span>`:''}
