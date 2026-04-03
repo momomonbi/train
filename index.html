@@ -2,36 +2,41 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>電車乗り換え検索</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Meiryo', sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
             min-height: 100vh; color: #e2e8f0;
         }
-        .container { max-width: 820px; margin: 0 auto; padding: 16px; }
-        header { text-align: center; padding: 20px 0 14px; }
-        header h1 { font-size: 24px; background: linear-gradient(90deg,#60a5fa,#34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3px; }
-        header p { font-size: 12px; color: #94a3b8; }
+        .container { max-width: 820px; margin: 0 auto; padding: 14px; }
+        header { text-align: center; padding: 18px 0 12px; }
+        header h1 { font-size: 22px; background: linear-gradient(90deg,#60a5fa,#34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        header p { font-size: 11px; color: #94a3b8; margin-top: 2px; }
 
-        .card { background: rgba(30,41,59,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(100,116,139,0.3); border-radius: 14px; padding: 18px; margin-bottom: 12px; }
+        .card { background: rgba(30,41,59,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(100,116,139,0.25); border-radius: 14px; padding: 16px; margin-bottom: 10px; }
 
+        /* iOS zoom防止: 16px以上 */
         label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 2px; font-weight: 600; }
-        input, select { width: 100%; padding: 9px 11px; background: rgba(15,23,42,0.6); border: 1px solid rgba(100,116,139,0.4); border-radius: 9px; color: #e2e8f0; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        input, select, textarea {
+            width: 100%; padding: 9px 11px;
+            background: rgba(15,23,42,0.6); border: 1px solid rgba(100,116,139,0.35);
+            border-radius: 9px; color: #e2e8f0; font-size: 16px; outline: none;
+            transition: border-color 0.2s; -webkit-appearance: none;
+        }
         input:focus, select:focus { border-color: #60a5fa; }
         input::placeholder { color: #64748b; }
         select { cursor: pointer; }
         select option { background: #1e293b; }
 
-        /* 駅入力 */
         .station-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
         .station-col { flex: 1; }
         .station-input-wrap { display: flex; gap: 5px; }
         .station-input-wrap input { flex: 1; }
 
-        .icon-btn { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25); border-radius: 9px; color: #60a5fa; cursor: pointer; font-size: 12px; padding: 9px 8px; white-space: nowrap; transition: all 0.15s; display: flex; align-items: center; gap: 3px; }
+        .icon-btn { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25); border-radius: 9px; color: #60a5fa; cursor: pointer; font-size: 12px; padding: 9px 8px; white-space: nowrap; transition: all 0.15s; display: flex; align-items: center; }
         .icon-btn:hover:not(:disabled) { background: rgba(96,165,250,0.25); }
         .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .icon-btn.green { background: rgba(52,211,153,0.12); border-color: rgba(52,211,153,0.25); color: #34d399; }
@@ -39,7 +44,7 @@
         .icon-btn.locating { animation: pulse 1s ease-in-out infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-        .swap-btn { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #60a5fa; font-size: 15px; margin-top: 18px; transition: all 0.15s; }
+        .swap-btn { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #60a5fa; font-size: 15px; margin-top: 18px; transition: all 0.15s; flex-shrink: 0; }
         .swap-btn:hover { background: rgba(96,165,250,0.3); }
 
         .sub-text { font-size: 10px; color: #94a3b8; margin-top: 2px; }
@@ -47,129 +52,143 @@
         .sub-text.err { color: #fca5a5; }
 
         .via-row { margin-bottom: 10px; }
-        .via-toggle { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; cursor: pointer; }
-        .via-toggle span { font-size: 11px; color: #94a3b8; font-weight: 600; }
-        .via-toggle .arrow { font-size: 10px; color: #64748b; transition: transform 0.2s; }
-        .via-toggle.open .arrow { transform: rotate(90deg); }
-        .via-list { display: none; }
-        .via-list.open { display: block; }
-        .via-item { display: flex; gap: 5px; margin-bottom: 5px; align-items: center; }
-        .via-item input { flex: 1; }
-        .via-remove { background: none; border: none; color: #64748b; cursor: pointer; font-size: 16px; padding: 0 4px; }
-        .via-remove:hover { color: #fca5a5; }
-        .via-add { background: none; border: 1px dashed rgba(100,116,139,0.3); border-radius: 8px; padding: 6px; color: #64748b; cursor: pointer; font-size: 12px; width: 100%; text-align: center; margin-top: 2px; }
-        .via-add:hover { border-color: rgba(96,165,250,0.4); color: #93c5fd; }
-        .via-count { font-size: 10px; color: #60a5fa; margin-left: 4px; }
 
-        /* オプション */
-        .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-bottom: 10px; }
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-bottom: 10px; }
         .check-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
         .check-label { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #cbd5e1; cursor: pointer; }
-        .check-label input[type="checkbox"] { width: 15px; height: 15px; accent-color: #60a5fa; cursor: pointer; }
+        .check-label input[type="checkbox"] { width: 16px; height: 16px; accent-color: #60a5fa; cursor: pointer; }
 
-        /* 折りたたみ詳細設定 */
         .detail-toggle { font-size: 12px; color: #64748b; cursor: pointer; margin-bottom: 10px; border: none; background: none; }
         .detail-toggle:hover { color: #94a3b8; }
         .detail-section { display: none; margin-bottom: 12px; }
         .detail-section.open { display: block; }
 
-        /* 交通手段除外 */
-        .transport-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-        .transport-chip { display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 8px; font-size: 12px; border: 1px solid rgba(100,116,139,0.35); background: rgba(15,23,42,0.5); color: #cbd5e1; cursor: pointer; transition: all 0.15s; user-select: none; }
-        .transport-chip.off { opacity: 0.4; text-decoration: line-through; border-color: rgba(239,68,68,0.3); color: #94a3b8; }
-        .transport-chip:hover { border-color: rgba(96,165,250,0.4); }
+        .transport-row { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+        .transport-chip { padding: 5px 10px; border-radius: 8px; font-size: 12px; border: 1px solid rgba(100,116,139,0.35); background: rgba(15,23,42,0.5); color: #cbd5e1; cursor: pointer; transition: all 0.15s; user-select: none; }
+        .transport-chip.off { opacity: 0.35; text-decoration: line-through; border-color: rgba(239,68,68,0.3); }
 
-        /* ボタン */
-        .search-btn { width: 100%; padding: 12px; background: linear-gradient(135deg,#3b82f6,#2563eb); border: none; border-radius: 11px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 7px; }
-        .search-btn:hover:not(:disabled) { background: linear-gradient(135deg,#2563eb,#1d4ed8); transform: translateY(-1px); }
+        .search-btn { width: 100%; padding: 12px; background: linear-gradient(135deg,#3b82f6,#2563eb); border: none; border-radius: 11px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 7px; }
+        .search-btn:hover:not(:disabled) { transform: translateY(-1px); }
         .search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* ツールバー */
-        .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-        .tool-btn { padding: 7px 12px; border-radius: 9px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid rgba(100,116,139,0.3); background: rgba(30,41,59,0.9); color: #cbd5e1; transition: all 0.15s; }
-        .tool-btn:hover { background: rgba(96,165,250,0.15); color: #93c5fd; border-color: rgba(96,165,250,0.3); }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .tool-btn { padding: 7px 11px; border-radius: 9px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid rgba(100,116,139,0.3); background: rgba(30,41,59,0.9); color: #cbd5e1; transition: all 0.15s; }
+        .tool-btn:hover { background: rgba(96,165,250,0.15); color: #93c5fd; }
         .tool-btn.active { background: rgba(96,165,250,0.2); color: #60a5fa; border-color: #60a5fa; }
         .tool-btn.orange { color: #fbbf24; border-color: rgba(251,191,36,0.3); }
-        .tool-btn.orange:hover { background: rgba(251,191,36,0.15); }
         .tool-btn.green2 { color: #34d399; border-color: rgba(52,211,153,0.3); }
-        .tool-btn.green2:hover { background: rgba(52,211,153,0.12); }
 
-        /* 結果 */
-        .result-card { background: rgba(30,41,59,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(100,116,139,0.3); border-radius: 14px; padding: 18px; margin-bottom: 12px; animation: fadeIn 0.3s ease; }
+        /* ===== ルート結果カード ===== */
+        .route-card { background: rgba(30,41,59,0.85); border: 1px solid rgba(100,116,139,0.25); border-radius: 14px; margin-bottom: 10px; overflow: hidden; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-        .result-card h3 { color: #60a5fa; margin-bottom: 12px; font-size: 14px; display: flex; align-items: center; gap: 7px; }
+
+        .route-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(96,165,250,0.08); border-bottom: 1px solid rgba(100,116,139,0.15); flex-wrap: wrap; gap: 6px; }
+        .route-label { font-size: 13px; font-weight: 700; color: #60a5fa; }
+        .route-time-big { font-size: 20px; font-weight: 700; color: #f1f5f9; letter-spacing: -0.5px; }
+        .route-time-big .arr { color: #34d399; }
+        .route-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+        .route-badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+        .badge-duration { background: rgba(96,165,250,0.15); color: #93c5fd; }
+        .badge-transfer { background: rgba(251,191,36,0.12); color: #fde68a; }
+        .badge-fare { background: rgba(52,211,153,0.12); color: #6ee7b7; }
+
+        /* タイムライン */
+        .route-timeline { padding: 12px 16px 12px 20px; }
+        .tl-segment { position: relative; padding-left: 28px; padding-bottom: 0; }
+        .tl-segment:last-child { padding-bottom: 0; }
+
+        /* 縦線 */
+        .tl-line { position: absolute; left: 8px; top: 18px; bottom: 0; width: 4px; border-radius: 2px; }
+
+        /* 駅ドット */
+        .tl-dot { position: absolute; left: 3px; top: 5px; width: 14px; height: 14px; border-radius: 50%; border: 3px solid; background: #0f172a; z-index: 1; }
+        .tl-dot.start { border-color: #60a5fa; background: #60a5fa; }
+        .tl-dot.end { border-color: #34d399; background: #34d399; }
+        .tl-dot.transfer { border-color: #fbbf24; background: #fbbf24; }
+
+        .tl-station { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+        .tl-station-time { font-size: 15px; font-weight: 700; color: #f1f5f9; min-width: 42px; font-variant-numeric: tabular-nums; }
+        .tl-station-name { font-size: 14px; font-weight: 600; color: #e2e8f0; }
+        .tl-station-platform { font-size: 11px; color: #94a3b8; margin-left: 4px; }
+
+        .tl-ride { padding: 6px 0 6px 0; margin-left: 0; }
+        .tl-ride-line { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+        .tl-ride-detail { font-size: 11px; color: #94a3b8; line-height: 1.5; }
+        .tl-ride-detail span { margin-right: 10px; }
+
+        .tl-transfer-box { display: flex; align-items: center; gap: 6px; padding: 5px 10px; margin: 4px 0; background: rgba(251,191,36,0.08); border: 1px dashed rgba(251,191,36,0.25); border-radius: 8px; font-size: 11px; color: #fde68a; }
+
+        /* 注意事項 */
+        .route-notes { padding: 8px 16px 12px; border-top: 1px solid rgba(100,116,139,0.12); }
+        .route-notes p { font-size: 11px; color: #94a3b8; line-height: 1.5; margin-bottom: 2px; }
+        .route-notes .warn { color: #fca5a5; }
+
+        /* フォールバック（Markdown表示） */
+        .result-card { background: rgba(30,41,59,0.85); border: 1px solid rgba(100,116,139,0.25); border-radius: 14px; padding: 16px; margin-bottom: 10px; animation: fadeIn 0.3s ease; }
+        .result-card h3 { color: #60a5fa; margin-bottom: 10px; font-size: 14px; }
         .result-content { line-height: 1.75; font-size: 13px; color: #cbd5e1; }
-        .result-content h1,.result-content h2,.result-content h3,.result-content h4 { color: #60a5fa; margin: 12px 0 5px; }
-        .result-content h1{font-size:18px} .result-content h2{font-size:16px} .result-content h3{font-size:14px}
-        .result-content p { margin-bottom: 7px; }
-        .result-content strong, .result-content b { color: #f1f5f9; }
-        .result-content ul, .result-content ol { padding-left: 20px; margin-bottom: 7px; }
+        .result-content h1,.result-content h2,.result-content h3,.result-content h4 { color: #60a5fa; margin: 10px 0 4px; }
+        .result-content h1{font-size:17px} .result-content h2{font-size:15px} .result-content h3{font-size:14px}
+        .result-content p { margin-bottom: 6px; }
+        .result-content strong { color: #f1f5f9; }
+        .result-content ul, .result-content ol { padding-left: 20px; margin-bottom: 6px; }
         .result-content li { margin-bottom: 2px; }
         .result-content a { color: #38bdf8; text-decoration: none; }
-        .result-content a:hover { text-decoration: underline; }
         .result-content table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-        .result-content th, .result-content td { border: 1px solid rgba(100,116,139,0.3); padding: 6px 9px; text-align: left; font-size: 12px; }
+        .result-content th, .result-content td { border: 1px solid rgba(100,116,139,0.3); padding: 5px 8px; text-align: left; font-size: 12px; }
         .result-content th { background: rgba(96,165,250,0.1); color: #60a5fa; }
 
-        .sources { margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(100,116,139,0.2); }
-        .sources h4 { font-size: 11px; color: #94a3b8; margin-bottom: 5px; }
-        .sources a { display: block; font-size: 10px; color: #38bdf8; text-decoration: none; margin-bottom: 2px; word-break: break-all; }
-        .sources a:hover { text-decoration: underline; }
+        .sources { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(100,116,139,0.15); }
+        .sources h4 { font-size: 10px; color: #64748b; margin-bottom: 4px; }
+        .sources a { display: inline-block; font-size: 10px; color: #38bdf8; text-decoration: none; margin-right: 10px; }
 
-        .loading { text-align: center; padding: 30px; }
-        .spinner { width: 32px; height: 32px; border: 3px solid rgba(96,165,250,0.2); border-top-color: #60a5fa; border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 10px; }
+        .loading { text-align: center; padding: 28px; }
+        .spinner { width: 30px; height: 30px; border: 3px solid rgba(96,165,250,0.2); border-top-color: #60a5fa; border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 8px; }
         @keyframes spin { to{transform:rotate(360deg)} }
         .loading p { color: #94a3b8; font-size: 12px; }
 
-        .error-msg { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25); border-radius: 11px; padding: 12px; color: #fca5a5; font-size: 12px; margin-bottom: 12px; }
+        .error-msg { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 11px; padding: 12px; color: #fca5a5; font-size: 12px; margin-bottom: 10px; }
 
-        /* 降車アラーム */
-        .alarm-bar { display: none; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); border-radius: 11px; margin-bottom: 12px; }
+        .alarm-bar { display: none; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); border-radius: 11px; margin-bottom: 10px; }
         .alarm-bar.active { display: flex; }
-        .alarm-time { font-size: 26px; font-weight: 700; color: #fbbf24; font-variant-numeric: tabular-nums; }
+        .alarm-time { font-size: 24px; font-weight: 700; color: #fbbf24; font-variant-numeric: tabular-nums; }
         .alarm-label { flex: 1; font-size: 12px; color: #fde68a; }
         .alarm-cancel { padding: 5px 12px; border-radius: 7px; border: 1px solid rgba(251,191,36,0.4); background: transparent; color: #fbbf24; cursor: pointer; font-size: 12px; }
 
-        /* 旅費メモ */
-        .expense-bar { background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); border-radius: 11px; padding: 12px 14px; margin-bottom: 12px; }
-        .expense-bar h4 { font-size: 12px; color: #a78bfa; margin-bottom: 8px; }
+        .expense-bar { background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); border-radius: 11px; padding: 10px 14px; margin-bottom: 10px; }
+        .expense-bar h4 { font-size: 12px; color: #a78bfa; margin-bottom: 6px; }
         .expense-list { font-size: 12px; color: #c4b5fd; }
-        .expense-list .item { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(139,92,246,0.1); }
-        .expense-total { display: flex; justify-content: space-between; font-weight: 700; color: #a78bfa; padding-top: 5px; font-size: 13px; }
-        .expense-actions { display: flex; gap: 6px; margin-top: 8px; }
-        .expense-actions button { padding: 4px 10px; border-radius: 7px; border: 1px solid rgba(139,92,246,0.3); background: transparent; color: #a78bfa; cursor: pointer; font-size: 11px; }
+        .expense-list .item { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid rgba(139,92,246,0.1); }
+        .expense-total { display: flex; justify-content: space-between; font-weight: 700; color: #a78bfa; padding-top: 4px; font-size: 13px; }
+        .expense-actions { display: flex; gap: 6px; margin-top: 6px; }
+        .expense-actions button { padding: 3px 10px; border-radius: 7px; border: 1px solid rgba(139,92,246,0.3); background: transparent; color: #a78bfa; cursor: pointer; font-size: 11px; }
 
-        /* タグ */
         .section-title { color: #94a3b8; font-size: 12px; margin-bottom: 6px; font-weight: 600; }
-        .tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.18); border-radius: 18px; padding: 4px 11px; font-size: 11px; color: #93c5fd; cursor: pointer; margin: 0 5px 5px 0; transition: all 0.15s; }
+        .tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.18); border-radius: 18px; padding: 4px 11px; font-size: 11px; color: #93c5fd; cursor: pointer; margin: 0 5px 5px 0; }
         .tag:hover { background: rgba(96,165,250,0.18); }
         .tag .del { color: #64748b; margin-left: 2px; font-size: 13px; }
         .tag .del:hover { color: #fca5a5; }
         .tag.fav { border-color: rgba(251,191,36,0.25); color: #fde68a; background: rgba(251,191,36,0.06); }
 
-        /* 設定 */
         .settings-toggle { text-align: right; margin-bottom: 6px; }
-        .settings-toggle button { background: none; border: none; color: #64748b; cursor: pointer; font-size: 12px; padding: 3px 7px; }
+        .settings-toggle button { background: none; border: none; color: #64748b; cursor: pointer; font-size: 12px; }
         .settings-toggle button:hover { color: #94a3b8; }
-        .settings-panel { display: none; margin-bottom: 12px; }
+        .settings-panel { display: none; margin-bottom: 10px; }
         .settings-panel.open { display: block; }
 
-        /* 運行情報バナー */
-        .info-banner { display: none; padding: 9px 12px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 11px; margin-bottom: 12px; font-size: 12px; color: #fca5a5; }
+        .info-banner { display: none; padding: 8px 12px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 11px; margin-bottom: 10px; font-size: 12px; color: #fca5a5; }
         .info-banner.show { display: block; }
         .info-banner.ok { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.2); color: #34d399; }
 
-        /* モード切替タブ */
-        .mode-tabs { display: flex; gap: 0; margin-bottom: 12px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(100,116,139,0.3); }
-        .mode-tab { flex: 1; padding: 9px; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; background: rgba(15,23,42,0.5); color: #94a3b8; transition: all 0.15s; border: none; }
+        .mode-tabs { display: flex; margin-bottom: 10px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(100,116,139,0.3); }
+        .mode-tab { flex: 1; padding: 9px; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; background: rgba(15,23,42,0.5); color: #94a3b8; border: none; }
         .mode-tab.active { background: rgba(96,165,250,0.15); color: #60a5fa; }
-        .mode-tab:hover:not(.active) { background: rgba(96,165,250,0.08); }
 
         @media (max-width: 600px) {
             .station-row { flex-direction: column; }
             .swap-btn { margin-top: 0; align-self: center; transform: rotate(90deg); }
             .options-grid { grid-template-columns: 1fr 1fr; }
-            .mode-tabs { font-size: 12px; }
+            .route-time-big { font-size: 18px; }
         }
     </style>
 </head>
@@ -180,9 +199,7 @@
         <p>AI Web Search で最新の経路情報を取得</p>
     </header>
 
-    <div class="settings-toggle">
-        <button onclick="document.getElementById('settingsPanel').classList.toggle('open')">API設定</button>
-    </div>
+    <div class="settings-toggle"><button onclick="document.getElementById('settingsPanel').classList.toggle('open')">API設定</button></div>
     <div class="settings-panel" id="settingsPanel">
         <div class="card">
             <label>OpenAI API Key</label>
@@ -190,23 +207,20 @@
             <div style="margin-top:8px;">
                 <label>モデル選択</label>
                 <select id="modelSelect">
-                    <option value="gpt-4o-mini-search-preview" selected>gpt-4o-mini-search（検索特化・最速・最安）</option>
+                    <option value="gpt-4o-mini-search-preview" selected>gpt-4o-mini-search（検索特化・最速）</option>
                     <option value="gpt-4o-search-preview">gpt-4o-search（検索特化・高品質）</option>
-                    <option value="gpt-4.1">gpt-4.1（汎用・Responses API）</option>
+                    <option value="gpt-4.1">gpt-4.1（汎用）</option>
                     <option value="gpt-4.1-mini">gpt-4.1-mini（汎用・低コスト）</option>
                     <option value="gpt-5.4">gpt-5.4（最高性能・遅い場合あり）</option>
-                    <option value="gpt-5.4-mini">gpt-5.4-mini</option>
                 </select>
-                <div class="sub-text" style="margin-top:3px;">※ 検索特化モデルが高速でおすすめ。GPT-5系は遅い場合あり。</div>
             </div>
             <div style="margin-top:8px;">
                 <label>タイムアウト（秒）</label>
-                <input type="number" id="timeoutSec" value="120" min="30" max="600" style="width:100px;" />
+                <input type="number" id="timeoutSec" value="120" min="30" max="600" style="width:120px;" />
             </div>
         </div>
     </div>
 
-    <!-- 検索モード切替 -->
     <div class="mode-tabs">
         <button class="mode-tab active" onclick="setMode('route')" id="modeRoute">経路検索</button>
         <button class="mode-tab" onclick="setMode('timetable')" id="modeTimetable">時刻表</button>
@@ -214,143 +228,75 @@
         <button class="mode-tab" onclick="setMode('status')" id="modeStatus">運行情報</button>
     </div>
 
-    <!-- 運行情報バナー -->
     <div class="info-banner" id="infoBanner"></div>
 
-    <!-- メイン検索フォーム -->
     <div class="card" id="searchForm">
-        <!-- 出発・到着 -->
         <div class="station-row">
             <div class="station-col">
                 <label>出発駅</label>
                 <div class="station-input-wrap">
                     <input type="text" id="fromStation" placeholder="例: 東京" />
-                    <button class="icon-btn green" id="gpsBtn" onclick="detectStation()" title="GPS">GPS</button>
-                    <button class="icon-btn" onclick="voiceInput('fromStation')" title="音声入力">MIC</button>
+                    <button class="icon-btn green" id="gpsBtn" onclick="detectStation()">GPS</button>
+                    <button class="icon-btn" onclick="voiceInput('fromStation')">MIC</button>
                 </div>
                 <div id="gpsStatus" class="sub-text" style="display:none;"></div>
             </div>
-            <button class="swap-btn" onclick="swapStations()" title="入れ替え">&#8652;</button>
+            <button class="swap-btn" onclick="swapStations()">&#8652;</button>
             <div class="station-col">
                 <label>到着駅</label>
                 <div class="station-input-wrap">
                     <input type="text" id="toStation" placeholder="例: 大阪" />
-                    <button class="icon-btn" onclick="voiceInput('toStation')" title="音声入力">MIC</button>
+                    <button class="icon-btn" onclick="voiceInput('toStation')">MIC</button>
                 </div>
             </div>
         </div>
 
-        <!-- 経由駅 (経路検索のみ・折りたたみ・複数対応) -->
         <div class="via-row" id="viaRow">
-            <div class="via-toggle" id="viaToggle" onclick="toggleVia()">
-                <span class="arrow">&#9654;</span>
-                <span>経由駅（任意）<span class="via-count" id="viaCount"></span></span>
-            </div>
-            <div class="via-list" id="viaList">
-                <div class="via-item" data-idx="0">
-                    <input type="text" class="via-input" placeholder="経由駅1（例: 新宿）" />
-                    <button class="via-remove" onclick="removeVia(this)" title="削除">&times;</button>
-                </div>
-                <button class="via-add" onclick="addVia()">+ 経由駅を追加</button>
-            </div>
+            <label>経由駅（任意）</label>
+            <input type="text" id="viaStation" placeholder="例: 新宿（カンマ区切りで複数可）" />
         </div>
 
-        <!-- 日付・時刻・条件 -->
         <div class="options-grid" id="optionsGrid">
             <div><label>日付</label><input type="date" id="date" /></div>
             <div><label>時刻 <span id="liveClock" style="color:#34d399;font-weight:400;cursor:pointer;" onclick="updateNow()"></span></label><input type="time" id="time" /></div>
-            <div><label>条件</label>
-                <select id="timeType">
-                    <option value="departure">出発時刻指定</option>
-                    <option value="arrival">到着時刻指定</option>
-                    <option value="first">始発</option>
-                    <option value="last">終電</option>
-                </select>
-            </div>
-            <div><label>優先</label>
-                <select id="priority">
-                    <option value="recommended">おすすめ</option>
-                    <option value="fast">速い</option>
-                    <option value="cheap">安い</option>
-                    <option value="less_transfer">乗換少</option>
-                </select>
-            </div>
-            <div><label>歩く速度</label>
-                <select id="walkSpeed">
-                    <option value="slow">ゆっくり</option>
-                    <option value="slightly_slow">少しゆっくり</option>
-                    <option value="normal" selected>標準</option>
-                    <option value="slightly_fast">少し急ぎ</option>
-                    <option value="fast">急いで</option>
-                </select>
-            </div>
+            <div><label>条件</label><select id="timeType"><option value="departure">出発時刻指定</option><option value="arrival">到着時刻指定</option><option value="first">始発</option><option value="last">終電</option></select></div>
+            <div><label>優先</label><select id="priority"><option value="recommended">おすすめ</option><option value="fast">速い</option><option value="cheap">安い</option><option value="less_transfer">乗換少</option></select></div>
+            <div><label>歩く速度</label><select id="walkSpeed"><option value="slow">ゆっくり</option><option value="slightly_slow">少しゆっくり</option><option value="normal" selected>標準</option><option value="slightly_fast">少し急ぎ</option><option value="fast">急いで</option></select></div>
         </div>
 
-        <!-- チェックオプション -->
         <div class="check-row" id="checkRow">
             <label class="check-label"><input type="checkbox" id="optBarrierFree" /> バリアフリー</label>
             <label class="check-label"><input type="checkbox" id="optBoardingPos" checked /> 乗車位置</label>
-            <label class="check-label"><input type="checkbox" id="optDoorSide" checked /> ドア方向</label>
+            <label class="check-label"><input type="checkbox" id="optDoorSide" /> ドア方向</label>
             <label class="check-label"><input type="checkbox" id="optCrowding" /> 混雑度</label>
-            <label class="check-label"><input type="checkbox" id="optAvoidDelay" /> 遅延回避</label>
+            <label class="check-label"><input type="checkbox" id="optAvoidDelay" checked /> 遅延回避</label>
             <label class="check-label"><input type="checkbox" id="optCommuterPass" /> 定期券考慮</label>
         </div>
 
-        <!-- 詳細設定（折りたたみ） -->
-        <button class="detail-toggle" onclick="document.getElementById('detailSection').classList.toggle('open'); this.textContent = this.textContent.includes('▶') ? '▼ 詳細設定を閉じる' : '▶ 詳細設定';">▶ 詳細設定</button>
+        <button class="detail-toggle" onclick="document.getElementById('detailSection').classList.toggle('open'); this.textContent = this.textContent.includes('\u25B6') ? '\u25BC 詳細設定を閉じる' : '\u25B6 詳細設定';">\u25B6 詳細設定</button>
         <div class="detail-section" id="detailSection">
-            <!-- 交通手段の使用/除外 -->
-            <label style="margin-bottom:6px;">交通手段（タップで除外）</label>
-            <div class="transport-row" id="transportRow">
-                <span class="transport-chip" data-key="shinkansen" onclick="toggleTransport(this)">新幹線</span>
-                <span class="transport-chip" data-key="express" onclick="toggleTransport(this)">有料特急</span>
-                <span class="transport-chip" data-key="airplane" onclick="toggleTransport(this)">飛行機</span>
-                <span class="transport-chip" data-key="bus" onclick="toggleTransport(this)">路線バス</span>
-                <span class="transport-chip" data-key="highwaybus" onclick="toggleTransport(this)">高速バス</span>
-                <span class="transport-chip" data-key="ferry" onclick="toggleTransport(this)">フェリー</span>
+            <label style="margin-bottom:5px;">交通手段（タップで除外）</label>
+            <div class="transport-row">
+                <span class="transport-chip" data-key="shinkansen" onclick="this.classList.toggle('off')">新幹線</span>
+                <span class="transport-chip" data-key="express" onclick="this.classList.toggle('off')">有料特急</span>
+                <span class="transport-chip" data-key="airplane" onclick="this.classList.toggle('off')">飛行機</span>
+                <span class="transport-chip" data-key="bus" onclick="this.classList.toggle('off')">路線バス</span>
+                <span class="transport-chip" data-key="highwaybus" onclick="this.classList.toggle('off')">高速バス</span>
+                <span class="transport-chip" data-key="ferry" onclick="this.classList.toggle('off')">フェリー</span>
             </div>
-
-            <!-- 列車名指定 -->
-            <div style="margin-bottom:10px;">
-                <label>列車名指定（任意）</label>
-                <input type="text" id="trainName" placeholder="例: のぞみ, ひかり, あずさ" />
-            </div>
-
-            <!-- 特殊きっぷ -->
-            <div style="margin-bottom:10px;">
-                <label>特殊きっぷ</label>
-                <select id="specialTicket">
-                    <option value="none">なし</option>
-                    <option value="seishun18">青春18きっぷ</option>
-                    <option value="freepass">フリーパス（地域指定）</option>
-                    <option value="jrpass">JR Pass（訪日外国人用）</option>
-                </select>
-            </div>
-            <div id="freepassSection" style="display:none; margin-bottom:10px;">
-                <label>フリーパス名/地域</label>
-                <input type="text" id="freepassName" placeholder="例: 東京フリーきっぷ, 関西ワンデイパス" />
-            </div>
-
-            <!-- 定期券区間 -->
-            <div id="commuterPassSection" style="display:none; margin-bottom:10px;">
-                <div class="options-grid">
-                    <div><label>定期 出発駅</label><input type="text" id="passFrom" placeholder="例: 渋谷" /></div>
-                    <div><label>定期 到着駅</label><input type="text" id="passTo" placeholder="例: 新宿" /></div>
-                </div>
+            <div style="margin-bottom:8px;"><label>列車名指定（任意）</label><input type="text" id="trainName" placeholder="例: のぞみ, あずさ" /></div>
+            <div style="margin-bottom:8px;"><label>特殊きっぷ</label><select id="specialTicket"><option value="none">なし</option><option value="seishun18">青春18きっぷ</option><option value="freepass">フリーパス</option><option value="jrpass">JR Pass</option></select></div>
+            <div id="freepassSection" style="display:none;margin-bottom:8px;"><label>フリーパス名</label><input type="text" id="freepassName" placeholder="例: 東京フリーきっぷ" /></div>
+            <div id="commuterPassSection" style="display:none;margin-bottom:8px;">
+                <div class="options-grid"><div><label>定期 出発駅</label><input type="text" id="passFrom" placeholder="例: 渋谷" /></div><div><label>定期 到着駅</label><input type="text" id="passTo" placeholder="例: 新宿" /></div></div>
             </div>
         </div>
 
         <button class="search-btn" id="searchBtn" onclick="doSearch()">経路を検索</button>
     </div>
 
-    <!-- 降車アラーム -->
-    <div class="alarm-bar" id="alarmBar">
-        <div class="alarm-time" id="alarmTime">--:--</div>
-        <div class="alarm-label" id="alarmLabel">降車アラーム</div>
-        <button class="alarm-cancel" onclick="cancelAlarm()">解除</button>
-    </div>
+    <div class="alarm-bar" id="alarmBar"><div class="alarm-time" id="alarmTime">--:--</div><div class="alarm-label" id="alarmLabel">降車アラーム</div><button class="alarm-cancel" onclick="cancelAlarm()">解除</button></div>
 
-    <!-- ツールバー -->
     <div class="toolbar" id="toolbar" style="display:none;">
         <button class="tool-btn" onclick="searchShift(-1)">&#9664; 1本前</button>
         <button class="tool-btn" onclick="searchShift(+1)">1本後 &#9654;</button>
@@ -363,632 +309,381 @@
         <button class="tool-btn" style="color:#a78bfa;border-color:rgba(139,92,246,0.3);" onclick="addExpenseFromResult()">旅費メモ</button>
     </div>
 
-    <!-- 結果表示 -->
     <div id="results"></div>
 
-    <!-- 旅費メモ -->
-    <div class="expense-bar" id="expenseBar" style="display:none;">
-        <h4>旅費メモ</h4>
-        <div class="expense-list" id="expenseList"></div>
-        <div class="expense-total"><span>合計</span><span id="expenseTotal">¥0</span></div>
-        <div class="expense-actions">
-            <button onclick="clearExpenses()">クリア</button>
-            <button onclick="copyExpenses()">コピー</button>
-        </div>
-    </div>
-
-    <!-- お気に入り -->
-    <div id="favSection" style="display:none; margin-bottom:12px;">
-        <div class="section-title">お気に入りルート</div>
-        <div id="favList"></div>
-    </div>
-
-    <!-- 検索履歴 -->
-    <div id="historySection" style="display:none;">
-        <div class="section-title">検索履歴</div>
-        <div id="historyList"></div>
-    </div>
+    <div class="expense-bar" id="expenseBar" style="display:none;"><h4>旅費メモ</h4><div class="expense-list" id="expenseList"></div><div class="expense-total"><span>合計</span><span id="expenseTotal">¥0</span></div><div class="expense-actions"><button onclick="clearExpenses()">クリア</button><button onclick="copyExpenses()">コピー</button></div></div>
+    <div id="favSection" style="display:none;margin-bottom:10px;"><div class="section-title">お気に入りルート</div><div id="favList"></div></div>
+    <div id="historySection" style="display:none;"><div class="section-title">検索履歴</div><div id="historyList"></div></div>
 </div>
 
 <script>
+// ===== 路線カラーマップ =====
+const LINE_COLORS = {
+    '山手線':'#9acd32','中央線':'#f15a22','中央線快速':'#f15a22','京浜東北線':'#00b2e5','東海道線':'#f68b1e',
+    '総武線':'#ffd400','横須賀線':'#0067c0','埼京線':'#00ac9b','湘南新宿':'#e44d2e','常磐線':'#00b261',
+    '丸ノ内線':'#f62e36','銀座線':'#f39700','日比谷線':'#b5b5ac','東西線':'#009bbf','千代田線':'#00a650',
+    '有楽町線':'#c1a470','半蔵門線':'#8f76d6','南北線':'#00ada9','副都心線':'#9c5e31','都営浅草線':'#e85298',
+    '都営三田線':'#0079c2','都営新宿線':'#6cbb5a','都営大江戸線':'#b6007a',
+    '東急東横線':'#da0442','東急田園都市線':'#00a29a','小田急線':'#2b59a3','京王線':'#c9167e',
+    '西武池袋線':'#009944','西武新宿線':'#009944','東武東上線':'#0068b7','東武スカイツリーライン':'#0068b7',
+    '京急線':'#e5171f','京成線':'#003c8f','つくばエクスプレス':'#0054a7',
+    '東海道新幹線':'#005daa','東北新幹線':'#00a651','北陸新幹線':'#7b439a',
+    default:'#60a5fa'
+};
+function getLineColor(name) {
+    if (!name) return LINE_COLORS.default;
+    for (const [k,v] of Object.entries(LINE_COLORS)) { if (name.includes(k)) return v; }
+    return LINE_COLORS.default;
+}
+
 // ===== 状態 =====
-let lastSearchParams = null;
-let lastResultText = '';
-let alarmTimer = null;
-let currentMode = 'route'; // route | timetable | commuter | status
+let lastSearchParams = null, lastResultText = '', alarmTimer = null, currentMode = 'route';
 
 // ===== 初期化 =====
-function updateNow() {
-    const n = new Date();
-    document.getElementById('date').value = n.toISOString().split('T')[0];
-    document.getElementById('time').value = n.toTimeString().slice(0,5);
-}
+function updateNow() { const n=new Date(); document.getElementById('date').value=n.toISOString().split('T')[0]; document.getElementById('time').value=n.toTimeString().slice(0,5); }
 updateNow();
+(function tick(){const n=new Date();document.getElementById('liveClock').textContent=`(${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')})`;setTimeout(tick,1000);})();
 
-(function tick() {
-    const n = new Date();
-    document.getElementById('liveClock').textContent =
-        `(${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')})`;
-    setTimeout(tick, 1000);
-})();
+const savedKey=localStorage.getItem('openai_api_key'); if(savedKey)document.getElementById('apiKey').value=savedKey;
+document.getElementById('apiKey').addEventListener('change',e=>localStorage.setItem('openai_api_key',e.target.value.trim()));
+const savedModel=localStorage.getItem('openai_model'); if(savedModel)document.getElementById('modelSelect').value=savedModel;
+document.getElementById('modelSelect').addEventListener('change',e=>localStorage.setItem('openai_model',e.target.value));
+const savedTimeout=localStorage.getItem('openai_timeout'); if(savedTimeout)document.getElementById('timeoutSec').value=savedTimeout;
+document.getElementById('timeoutSec').addEventListener('change',e=>localStorage.setItem('openai_timeout',e.target.value));
 
-const savedKey = localStorage.getItem('openai_api_key');
-if (savedKey) document.getElementById('apiKey').value = savedKey;
-document.getElementById('apiKey').addEventListener('change', e => localStorage.setItem('openai_api_key', e.target.value.trim()));
-
-// モデル・タイムアウト設定の永続化
-const savedModel = localStorage.getItem('openai_model');
-if (savedModel) document.getElementById('modelSelect').value = savedModel;
-document.getElementById('modelSelect').addEventListener('change', e => localStorage.setItem('openai_model', e.target.value));
-const savedTimeout = localStorage.getItem('openai_timeout');
-if (savedTimeout) document.getElementById('timeoutSec').value = savedTimeout;
-document.getElementById('timeoutSec').addEventListener('change', e => localStorage.setItem('openai_timeout', e.target.value));
-
-document.getElementById('optCommuterPass').addEventListener('change', e => {
-    document.getElementById('commuterPassSection').style.display = e.target.checked ? 'block' : 'none';
-});
-document.getElementById('specialTicket').addEventListener('change', e => {
-    document.getElementById('freepassSection').style.display = e.target.value === 'freepass' ? 'block' : 'none';
-});
-
+document.getElementById('optCommuterPass').addEventListener('change',e=>{document.getElementById('commuterPassSection').style.display=e.target.checked?'block':'none';});
+document.getElementById('specialTicket').addEventListener('change',e=>{document.getElementById('freepassSection').style.display=e.target.value==='freepass'?'block':'none';});
 loadHistory(); loadFavorites(); loadExpenses();
 
-// ===== モード切替 =====
-function setMode(mode) {
-    currentMode = mode;
-    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
-
-    const show = (id, v) => { const el = document.getElementById(id); if (el) el.style.display = v ? '' : 'none'; };
-    show('viaRow', mode === 'route');
-    // 経由駅の折りたたみもリセット
-    document.getElementById('viaToggle').classList.remove('open');
-    document.getElementById('viaList').classList.remove('open');
-    show('checkRow', mode === 'route');
-    // 詳細設定はCSSクラスで制御（inline styleだとトグルが壊れる）
+// ===== モード =====
+function setMode(mode){
+    currentMode=mode;
+    document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active'));
+    document.getElementById('mode'+mode.charAt(0).toUpperCase()+mode.slice(1)).classList.add('active');
+    const show=(id,v)=>{const el=document.getElementById(id);if(el)el.style.display=v?'':'none';};
+    show('viaRow',mode==='route');show('checkRow',mode==='route');
     document.getElementById('detailSection').classList.remove('open');
-    const detailBtn = document.querySelector('.detail-toggle');
-    detailBtn.style.display = mode === 'route' ? '' : 'none';
-    detailBtn.textContent = '▶ 詳細設定';
-
-    const btn = document.getElementById('searchBtn');
-    const labels = { route: '経路を検索', timetable: '時刻表を検索', commuter: '定期代を検索', status: '運行情報を取得' };
-    btn.textContent = labels[mode];
+    const db=document.querySelector('.detail-toggle');db.style.display=mode==='route'?'':'none';db.textContent='\u25B6 詳細設定';
+    const btn=document.getElementById('searchBtn');
+    btn.textContent={route:'経路を検索',timetable:'時刻表を検索',commuter:'定期代を検索',status:'運行情報を取得'}[mode];
 }
 
-// ===== 交通手段トグル =====
-function toggleTransport(el) { el.classList.toggle('off'); }
-function getExcludedTransport() {
-    return [...document.querySelectorAll('.transport-chip.off')].map(c => c.dataset.key);
+// ===== 音声・GPS・入れ替え =====
+function voiceInput(id){if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){alert('音声入力非対応');return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const r=new SR();r.lang='ja-JP';r.onresult=e=>{document.getElementById(id).value=e.results[0][0].transcript.replace(/駅$/,'').trim();};r.onerror=()=>{};r.start();}
+function swapStations(){const f=document.getElementById('fromStation'),t=document.getElementById('toStation');[f.value,t.value]=[t.value,f.value];}
+function getApiKey(){const k=document.getElementById('apiKey').value.trim();if(!k){document.getElementById('settingsPanel').classList.add('open');document.getElementById('apiKey').focus();}return k;}
+
+async function detectStation(){
+    const btn=document.getElementById('gpsBtn'),st=document.getElementById('gpsStatus');st.style.display='block';
+    if(!navigator.geolocation){st.textContent='GPS非対応';st.className='sub-text err';return;}
+    btn.disabled=true;btn.classList.add('locating');btn.textContent='...';st.textContent='位置情報を取得中...';st.className='sub-text';
+    try{const pos=await new Promise((ok,ng)=>navigator.geolocation.getCurrentPosition(ok,ng,{enableHighAccuracy:true,timeout:15000,maximumAge:0}));
+        const lat=pos.coords.latitude,lng=pos.coords.longitude;st.textContent=`${lat.toFixed(4)}, ${lng.toFixed(4)} — 検索中...`;
+        const apiKey=getApiKey();if(!apiKey){st.textContent='APIキーを先に設定';st.className='sub-text err';return;}
+        const data=await callAPI(apiKey,`緯度${lat}, 経度${lng}に最も近い日本の鉄道駅名を1つだけ（「駅」除く）答えて。例:渋谷`,'low',256);
+        let name=(data.output_text||'').trim().replace(/駅$/,'').split('\n')[0].trim();
+        document.getElementById('fromStation').value=name;st.textContent=`最寄り駅: ${name}`;st.className='sub-text ok';
+    }catch(err){st.textContent=({1:'位置情報の許可が必要',2:'位置情報が利用不可',3:'タイムアウト'})[err.code]||'取得失敗';st.className='sub-text err';
+    }finally{btn.disabled=false;btn.classList.remove('locating');btn.textContent='GPS';}
 }
 
-// ===== 音声入力 =====
-function voiceInput(targetId) {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { alert('音声入力非対応'); return; }
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const rec = new SR(); rec.lang = 'ja-JP'; rec.interimResults = false;
-    rec.onresult = e => { document.getElementById(targetId).value = e.results[0][0].transcript.replace(/駅$/,'').trim(); };
-    rec.onerror = () => {}; rec.start();
+// ===== 検索ディスパッチ =====
+function doSearch(){({route:searchRoute,timetable:searchTimetable,commuter:searchCommuter,status:checkServiceStatus})[currentMode]();}
+
+async function searchRoute(overrideTime){
+    const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');return;}
+    const from=document.getElementById('fromStation').value.trim(),to=document.getElementById('toStation').value.trim();
+    if(!from||!to){showError('出発駅と到着駅を入力してください。');return;}
+    if(!overrideTime)updateNow();
+    const date=document.getElementById('date').value,time=overrideTime||document.getElementById('time').value;
+    const via=document.getElementById('viaStation').value.trim();
+    const sel=id=>{const s=document.getElementById(id);return s.options[s.selectedIndex].text;};
+    lastSearchParams={from,to,via,date,time,timeTypeText:sel('timeType'),priorityText:sel('priority'),walkText:sel('walkSpeed'),
+        barrierFree:document.getElementById('optBarrierFree').checked,boardingPos:document.getElementById('optBoardingPos').checked,
+        doorSide:document.getElementById('optDoorSide').checked,crowding:document.getElementById('optCrowding').checked,
+        avoidDelay:document.getElementById('optAvoidDelay').checked,commuterPass:document.getElementById('optCommuterPass').checked,
+        passFrom:document.getElementById('passFrom').value.trim(),passTo:document.getElementById('passTo').value.trim(),
+        excluded:[...document.querySelectorAll('.transport-chip.off')].map(c=>c.dataset.key),
+        trainName:document.getElementById('trainName').value.trim(),specialTicket:document.getElementById('specialTicket').value,
+        freepassName:document.getElementById('freepassName').value.trim()};
+    addHistory(from,to); await runSearch(buildRoutePrompt(lastSearchParams),true);
+}
+async function searchTimetable(){const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');return;}const from=document.getElementById('fromStation').value.trim();if(!from){showError('駅名を入力してください。');return;}const to=document.getElementById('toStation').value.trim();await runSearch(`ウェブ検索で${from}駅${to?'から'+to+'方面':''}の本日(${document.getElementById('date').value})の時刻表を調べて。直近10本を表形式(時刻|路線|種別|行先|番線)で、始発終電も記載。日本語で回答。`);}
+async function searchCommuter(){const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');return;}const from=document.getElementById('fromStation').value.trim(),to=document.getElementById('toStation').value.trim();if(!from||!to){showError('出発駅と到着駅を入力してください。');return;}await runSearch(`ウェブ検索で${from}駅〜${to}駅の通勤定期代を調べて。表形式(ルート|1ヶ月|3ヶ月|6ヶ月)で複数ルート提示。通学定期(大学)も併記。日本語で回答。`);}
+async function checkServiceStatus(){const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');return;}const from=document.getElementById('fromStation').value.trim(),to=document.getElementById('toStation').value.trim();
+    if(currentMode==='status'){setLoading(true);const area=from||to||'首都圏';try{const data=await callAPI(apiKey,`ウェブ検索で${area}エリアの鉄道の最新運行情報をまとめて。遅延・運休路線をリスト、異常なしは「平常運転」。日本語で回答。`,'medium',8000);lastResultText=data.output_text||'';displayFallback(data);document.getElementById('toolbar').style.display='none';}catch(err){showError(`エラー: ${err.message}`);}finally{setLoading(false);}return;}
+    const banner=document.getElementById('infoBanner');banner.className='info-banner show';banner.textContent='運行情報を確認中...';
+    try{const data=await callAPI(apiKey,`${from}駅から${to}駅で利用する路線の現在の運行情報をウェブ検索して簡潔にまとめて。異常なしなら「平常運転」。`,'low',2000);const txt=data.output_text||'取得できませんでした';banner.innerHTML='<strong>運行情報:</strong> '+escapeHtml(txt).replace(/\n/g,'<br>');banner.className=txt.includes('平常')?'info-banner show ok':'info-banner show';}catch{banner.textContent='運行情報の取得に失敗';}
 }
 
-// ===== GPS =====
-async function detectStation() {
-    const btn = document.getElementById('gpsBtn'), st = document.getElementById('gpsStatus');
-    st.style.display = 'block';
-    if (!navigator.geolocation) { st.textContent = 'GPS非対応'; st.className = 'sub-text err'; return; }
-    btn.disabled = true; btn.classList.add('locating'); btn.textContent = '...';
-    st.textContent = '位置情報を取得中...'; st.className = 'sub-text';
-    try {
-        const pos = await new Promise((ok,ng) => navigator.geolocation.getCurrentPosition(ok,ng,{enableHighAccuracy:true,timeout:15000,maximumAge:0}));
-        const lat = pos.coords.latitude, lng = pos.coords.longitude;
-        st.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} — 検索中...`;
-        const apiKey = getApiKey(); if (!apiKey) { st.textContent = 'APIキーを先に設定'; st.className = 'sub-text err'; return; }
-        const data = await callAPI(apiKey, `緯度${lat}, 経度${lng}に最も近い日本の鉄道駅名を1つだけ（「駅」除く）答えて。例:渋谷`, 'low', 256);
-        let name = (data.output_text||'').trim().replace(/駅$/,'').split('\n')[0].trim();
-        document.getElementById('fromStation').value = name;
-        st.textContent = `最寄り駅: ${name}`; st.className = 'sub-text ok';
-    } catch (err) {
-        st.textContent = ({1:'位置情報の許可が必要',2:'位置情報が利用不可',3:'タイムアウト'})[err.code] || '取得失敗';
-        st.className = 'sub-text err';
-    } finally { btn.disabled = false; btn.classList.remove('locating'); btn.textContent = 'GPS'; }
+async function runSearch(prompt,isRoute){
+    const apiKey=getApiKey();if(!apiKey)return;setLoading(true);
+    try{const data=await callAPI(apiKey,prompt,'medium',16000);lastResultText=data.output_text||'';
+        if(isRoute) displayRouteResult(data); else displayFallback(data);
+        document.getElementById('toolbar').style.display=currentMode==='route'?'flex':'none';updateFavBtn();
+        if(lastResultText)localStorage.setItem('cached_result',JSON.stringify({text:lastResultText,time:Date.now()}));
+    }catch(err){showError(`エラー: ${err.message}`);}finally{setLoading(false);}
 }
 
-function swapStations() { const f=document.getElementById('fromStation'),t=document.getElementById('toStation'); [f.value,t.value]=[t.value,f.value]; }
-function getApiKey() { const k=document.getElementById('apiKey').value.trim(); if(!k){document.getElementById('settingsPanel').classList.add('open');document.getElementById('apiKey').focus();} return k; }
+function setLoading(on){const btn=document.getElementById('searchBtn');if(on){const m=document.getElementById('modelSelect').value;btn.disabled=true;btn.innerHTML='<span class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;"></span> 検索中...';document.getElementById('results').innerHTML=`<div class="result-card loading"><div class="spinner"></div><p>${escapeHtml(m)} で検索中...</p></div>`;}else{btn.disabled=false;btn.textContent={route:'経路を検索',timetable:'時刻表を検索',commuter:'定期代を検索',status:'運行情報を取得'}[currentMode];}}
 
-// ===== 経由駅（複数・折りたたみ） =====
-function toggleVia() {
-    const tog = document.getElementById('viaToggle');
-    const list = document.getElementById('viaList');
-    tog.classList.toggle('open');
-    list.classList.toggle('open');
-}
-function addVia() {
-    const list = document.getElementById('viaList');
-    const items = list.querySelectorAll('.via-item');
-    if (items.length >= 8) return; // 最大8経由駅
-    const idx = items.length;
-    const div = document.createElement('div');
-    div.className = 'via-item'; div.dataset.idx = idx;
-    div.innerHTML = `<input type="text" class="via-input" placeholder="経由駅${idx+1}" /><button class="via-remove" onclick="removeVia(this)" title="削除">&times;</button>`;
-    list.insertBefore(div, list.querySelector('.via-add'));
-    updateViaCount();
-}
-function removeVia(btn) {
-    const list = document.getElementById('viaList');
-    const items = list.querySelectorAll('.via-item');
-    if (items.length <= 1) { items[0].querySelector('input').value = ''; updateViaCount(); return; }
-    btn.parentElement.remove();
-    updateViaCount();
-}
-function getViaStations() {
-    return [...document.querySelectorAll('.via-input')].map(i => i.value.trim()).filter(v => v);
-}
-function updateViaCount() {
-    const cnt = getViaStations().length;
-    document.getElementById('viaCount').textContent = cnt ? `(${cnt}件)` : '';
-}
-// 入力変更時にカウント更新
-document.getElementById('viaList').addEventListener('input', updateViaCount);
+function searchShift(dir){if(!lastSearchParams)return;const[hh,mm]=lastSearchParams.time.split(':').map(Number);const d=new Date(2000,0,1,hh,mm+dir*5);const t=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;document.getElementById('time').value=t;searchRoute(t);}
 
-// ===== メイン検索 =====
-function doSearch() {
-    if (currentMode === 'route') searchRoute();
-    else if (currentMode === 'timetable') searchTimetable();
-    else if (currentMode === 'commuter') searchCommuter();
-    else if (currentMode === 'status') checkServiceStatus();
-}
+// ===== プロンプト（JSON出力要求） =====
+function buildRoutePrompt(p){
+    let extra='';
+    if(p.via)extra+=`\n- 経由駅: ${p.via}`;
+    if(p.barrierFree)extra+='\n- バリアフリー優先（エレベーター・エスカレーター優先、階段回避）';
+    if(p.avoidDelay)extra+='\n- 遅延・運休路線を回避した迂回ルートを提示';
+    if(p.commuterPass&&p.passFrom&&p.passTo)extra+=`\n- 定期券区間: ${p.passFrom}駅〜${p.passTo}駅（区間外の追加運賃を計算）`;
+    const tn={shinkansen:'新幹線',express:'有料特急',airplane:'飛行機',bus:'路線バス',highwaybus:'高速バス',ferry:'フェリー'};
+    if(p.excluded.length)extra+=`\n- 除外: ${p.excluded.map(k=>tn[k]).join('、')}`;
+    if(p.trainName)extra+=`\n- 列車名指定: ${p.trainName}`;
+    if(p.specialTicket==='seishun18')extra+='\n- 青春18きっぷ利用（JR普通・快速のみ）';
+    if(p.specialTicket==='jrpass')extra+='\n- JR Pass利用（のぞみ・みずほ不可）';
+    if(p.specialTicket==='freepass'&&p.freepassName)extra+=`\n- フリーパス: ${p.freepassName}`;
+    const wm={'ゆっくり':'乗り換え時間に余裕を持たせて','少しゆっくり':'やや遅めの歩行で計算','標準':'','少し急ぎ':'早歩きで計算','急いで':'走る想定で最短乗り換え'};
 
-async function searchRoute(overrideTime) {
-    const apiKey = getApiKey(); if (!apiKey) { showError('APIキーを設定してください。'); return; }
-    const from = document.getElementById('fromStation').value.trim();
-    const to = document.getElementById('toStation').value.trim();
-    if (!from || !to) { showError('出発駅と到着駅を入力してください。'); return; }
+    let optFields = '';
+    if(p.boardingPos) optFields += ', "boardingPosition": "乗車位置（前寄り等）"';
+    if(p.doorSide) optFields += ', "doorSide": "ドア開方向（左/右）"';
+    if(p.crowding) optFields += ', "crowding": "混雑度"';
 
-    if (!overrideTime) updateNow();
-    const date = document.getElementById('date').value;
-    const time = overrideTime || document.getElementById('time').value;
-    const viaList = getViaStations();
-    const sel = id => { const s=document.getElementById(id); return s.options[s.selectedIndex].text; };
+    return `あなたは日本の電車乗り換え案内の専門家です。ウェブ検索を使って最新の経路を調べてください。
 
-    lastSearchParams = {
-        from, to, via: viaList, date, time,
-        timeTypeText: sel('timeType'), priorityText: sel('priority'), walkText: sel('walkSpeed'),
-        barrierFree: document.getElementById('optBarrierFree').checked,
-        boardingPos: document.getElementById('optBoardingPos').checked,
-        doorSide: document.getElementById('optDoorSide').checked,
-        crowding: document.getElementById('optCrowding').checked,
-        avoidDelay: document.getElementById('optAvoidDelay').checked,
-        commuterPass: document.getElementById('optCommuterPass').checked,
-        passFrom: document.getElementById('passFrom').value.trim(),
-        passTo: document.getElementById('passTo').value.trim(),
-        excluded: getExcludedTransport(),
-        trainName: document.getElementById('trainName').value.trim(),
-        specialTicket: document.getElementById('specialTicket').value,
-        freepassName: document.getElementById('freepassName').value.trim()
-    };
-    addHistory(from, to);
-    await runSearch(buildRoutePrompt(lastSearchParams));
-}
+【条件】
+- ${p.from}駅 → ${p.to}駅
+- ${p.date} ${p.time}（${p.timeTypeText}）
+- 優先: ${p.priorityText} / 歩行: ${p.walkText}${extra}
+${wm[p.walkText]||''}
 
-// ===== 時刻表検索 =====
-async function searchTimetable() {
-    const apiKey = getApiKey(); if (!apiKey) { showError('APIキーを設定してください。'); return; }
-    const from = document.getElementById('fromStation').value.trim();
-    if (!from) { showError('駅名を入力してください。'); return; }
-    const to = document.getElementById('toStation').value.trim();
-    const date = document.getElementById('date').value;
-    const prompt = `ウェブ検索を使って、${from}駅${to ? 'から'+to+'方面' : ''}の本日(${date})の時刻表を調べてください。
-直近の発車時刻を10本程度、以下の形式で表示:
-| 時刻 | 路線名 | 種別 | 行先 | 番線 |
-また、始発と終電の時刻も記載してください。日本語で回答。`;
-    await runSearch(prompt);
-}
+【重要】必ず以下のJSON形式のみで回答してください。JSONの前後に説明文は不要です。
 
-// ===== 定期代検索 =====
-async function searchCommuter() {
-    const apiKey = getApiKey(); if (!apiKey) { showError('APIキーを設定してください。'); return; }
-    const from = document.getElementById('fromStation').value.trim();
-    const to = document.getElementById('toStation').value.trim();
-    if (!from || !to) { showError('出発駅と到着駅を入力してください。'); return; }
-    const prompt = `ウェブ検索を使って、${from}駅から${to}駅の通勤定期券代を調べてください。
-以下の情報を含めて表形式で回答:
-| ルート | 1ヶ月 | 3ヶ月 | 6ヶ月 |
-- 複数ルートがある場合はすべて提示
-- 通学定期（大学）の価格も併記
-- ICカードと切符の場合を比較
-日本語で回答してください。`;
-    await runSearch(prompt);
-}
-
-// ===== 運行情報 =====
-async function checkServiceStatus() {
-    const apiKey = getApiKey(); if (!apiKey) return;
-    const from = document.getElementById('fromStation').value.trim();
-    const to = document.getElementById('toStation').value.trim();
-    const banner = document.getElementById('infoBanner');
-    if (currentMode === 'status') {
-        setLoading(true);
-        const area = from || to || '首都圏';
-        const prompt = `ウェブ検索を使って、${area}エリアの鉄道の最新の運行情報をまとめてください。
-- 遅延・運休・見合わせの路線をリストアップ
-- 各路線の状況（遅延の分数、原因、復旧見込み）
-- 異常がない路線は「平常運転」とまとめる
-日本語で回答。`;
-        try {
-            const data = await callAPI(apiKey, prompt, 'medium', 8000);
-            lastResultText = data.output_text || '';
-            displayResult(data);
-            document.getElementById('toolbar').style.display = 'none';
-        } catch (err) { showError(`エラー: ${err.message}`); }
-        finally { setLoading(false); }
-        return;
+\`\`\`json
+{
+  "routes": [
+    {
+      "departure": "HH:MM",
+      "arrival": "HH:MM",
+      "duration": "所要時間テキスト",
+      "transfers": 乗換回数(数値),
+      "fare": "運賃テキスト",
+      "icFare": "IC運賃テキスト",
+      "expressFare": "特急料金（なければnull）",
+      "segments": [
+        {
+          "type": "ride",
+          "from": "駅名",
+          "fromPlatform": "○番線",
+          "to": "駅名",
+          "toPlatform": "○番線",
+          "line": "路線名",
+          "direction": "○○方面",
+          "trainType": "種別（快速等）",
+          "departureTime": "HH:MM",
+          "arrivalTime": "HH:MM"${optFields}
+        },
+        {
+          "type": "transfer",
+          "station": "乗換駅名",
+          "minutes": 乗換時間(数値)
+        }
+      ],
+      "notes": ["注意事項があれば"]
     }
-    // ツールバーからの運行情報チェック
-    banner.className = 'info-banner show'; banner.textContent = '運行情報を確認中...';
-    try {
-        const q = `${from}駅から${to}駅で利用する路線の現在の運行情報・遅延・運休をウェブ検索して簡潔にまとめて。異常なしなら「平常運転」。`;
-        const data = await callAPI(apiKey, q, 'low', 2000);
-        const txt = data.output_text || '取得できませんでした';
-        banner.innerHTML = '<strong>運行情報:</strong> ' + escapeHtml(txt).replace(/\n/g,'<br>');
-        banner.className = txt.includes('平常') ? 'info-banner show ok' : 'info-banner show';
-    } catch { banner.textContent = '運行情報の取得に失敗'; }
+  ],
+  "serviceInfo": "運行情報（異常なしなら'平常運転'）"
 }
+\`\`\`
 
-// ===== 検索共通処理 =====
-async function runSearch(prompt) {
-    const apiKey = getApiKey(); if (!apiKey) return;
-    setLoading(true);
-    try {
-        const data = await callAPI(apiKey, prompt, 'medium', 16000);
-        lastResultText = data.output_text || '';
-        displayResult(data);
-        document.getElementById('toolbar').style.display = currentMode === 'route' ? 'flex' : 'none';
-        updateFavBtn();
-        cacheResult();
-    } catch (err) { showError(`エラー: ${err.message}`); }
-    finally { setLoading(false); }
-}
-
-function setLoading(on) {
-    const btn = document.getElementById('searchBtn');
-    if (on) {
-        const modelName = document.getElementById('modelSelect').value;
-        btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;"></span> 検索中...';
-        document.getElementById('results').innerHTML = `<div class="result-card loading"><div class="spinner"></div><p>${escapeHtml(modelName)} がウェブ検索で情報を取得中...</p></div>`;
-    } else {
-        btn.disabled = false;
-        const labels = { route:'経路を検索', timetable:'時刻表を検索', commuter:'定期代を検索', status:'運行情報を取得' };
-        btn.textContent = labels[currentMode];
-    }
-}
-
-// ===== 1本前/後 =====
-function searchShift(dir) {
-    if (!lastSearchParams) return;
-    const [hh,mm] = lastSearchParams.time.split(':').map(Number);
-    const d = new Date(2000,0,1,hh,mm+dir*5);
-    const t = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-    document.getElementById('time').value = t;
-    searchRoute(t);
-}
-
-// ===== プロンプト構築 =====
-function buildRoutePrompt(p) {
-    let extra = '';
-    if (p.via && p.via.length) extra += `\n- 経由駅（この順番で経由）: ${p.via.map(v=>v+'駅').join(' → ')}`;
-    if (p.barrierFree) extra += `\n- **バリアフリー優先**: エレベーター・エスカレーターを優先。階段を避ける。`;
-    if (p.avoidDelay) extra += `\n- **遅延路線回避**: 遅延・運休路線を避けた迂回ルートを提示。`;
-    if (p.commuterPass && p.passFrom && p.passTo) extra += `\n- **定期券区間**: ${p.passFrom}駅〜${p.passTo}駅（定期券区間外の追加運賃を計算）`;
-
-    // 交通手段除外
-    const transNames = { shinkansen:'新幹線', express:'有料特急', airplane:'飛行機', bus:'路線バス', highwaybus:'高速バス', ferry:'フェリー' };
-    if (p.excluded.length) extra += `\n- **除外する交通手段**: ${p.excluded.map(k=>transNames[k]).join('、')}は使用しないでください。`;
-
-    // 列車名指定
-    if (p.trainName) extra += `\n- **列車名指定**: ${p.trainName} を優先的に利用してください。`;
-
-    // 特殊きっぷ
-    if (p.specialTicket === 'seishun18') extra += `\n- **青春18きっぷ利用**: JR普通・快速列車のみで経路を検索。特急・新幹線は不可。`;
-    if (p.specialTicket === 'jrpass') extra += `\n- **JR Pass利用**: JR Pass（ジャパンレールパス）で乗車可能な列車のみで検索。のぞみ・みずほは不可。`;
-    if (p.specialTicket === 'freepass' && p.freepassName) extra += `\n- **フリーパス利用**: 「${p.freepassName}」を使用。パスの有効区間内は運賃0円として計算。`;
-
-    // 歩く速度
-    const walkMap = { 'ゆっくり':'歩くのが遅い人を想定し乗り換え時間に余裕を。', '少しゆっくり':'やや遅めの歩行速度で計算。', '標準':'', '少し急ぎ':'早歩きで乗り換え時間短めに。', '急いで':'走る想定で最短乗り換え。' };
-    const walkNote = walkMap[p.walkText] || '';
-
-    // 乗車位置 & ドア方向 & 混雑
-    let detailNotes = '';
-    if (p.boardingPos) detailNotes += `
-4. **乗車位置ガイド**
-   - 乗り換えに便利な号車番号（前寄り/中ほど/後寄り）
-   - 降車駅の階段・エスカレーター・エレベーターに近い車両`;
-    if (p.doorSide) detailNotes += `
-5. **ドア開閉方向**
-   - 各駅での降車時にドアが開く方向（左側/右側）を記載`;
-    if (p.crowding) detailNotes += `
-6. **混雑度**
-   - 各区間・時間帯の混雑度の目安（空いている/普通/混雑/非常に混雑）`;
-
-    return `あなたは日本の電車乗り換え案内の専門家です。
-ウェブ検索を使って、以下の条件で最新の電車の乗り換え経路を調べてください。
-
-【検索条件】
-- 出発駅: ${p.from}駅
-- 到着駅: ${p.to}駅
-- 日付: ${p.date}
-- 時刻: ${p.time}
-- 条件: ${p.timeTypeText}
-- 優先: ${p.priorityText}
-- 歩く速度: ${p.walkText}${extra}
-
-【回答形式】
-1. **推奨ルート** を最大3つ提示
-2. 各ルートについて:
-   - 出発時刻 → 到着時刻（所要時間）
-   - 乗り換え回数と乗り換え駅
-   - **利用路線名と番線情報**（各区間「○○線 ○番線ホーム」形式）
-     - 出発駅: 路線名・方面・番線
-     - 乗り換え駅: 乗り換え先路線名・方面・番線
-     - 到着駅: 降車番線
-   - 運賃（通常料金/ICカード料金）
-   - 特急料金がある場合はその金額
-3. **注意事項**（運休・遅延・工事情報など）
-${detailNotes}
-
-${walkNote}
-
-※番線はウェブ検索で時刻表や構内図から調べてください。不明なら「要確認」と記載。
-日本語で表形式を活用して回答してください。`;
+最大3ルート。番線はウェブ検索で調べ、不明なら"要確認"。`;
 }
 
 // ===== API =====
-const SEARCH_MODELS = ['gpt-4o-search-preview', 'gpt-4o-mini-search-preview'];
-
-async function callAPI(apiKey, input, ctxSize, maxTok) {
-    const model = document.getElementById('modelSelect').value;
-    const timeoutMs = (parseInt(document.getElementById('timeoutSec').value) || 120) * 1000;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const isSearchModel = SEARCH_MODELS.includes(model);
-
-    try {
+const SEARCH_MODELS=['gpt-4o-search-preview','gpt-4o-mini-search-preview'];
+async function callAPI(apiKey,input,ctxSize,maxTok){
+    const model=document.getElementById('modelSelect').value;
+    const timeoutMs=(parseInt(document.getElementById('timeoutSec').value)||120)*1000;
+    const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeoutMs);
+    const isSearch=SEARCH_MODELS.includes(model);
+    console.log(`[API] model=${model} search=${isSearch} timeout=${timeoutMs}ms`);
+    try{
         let res;
-        if (isSearchModel) {
-            // 検索特化モデル → Chat Completions API + web_search_options
-            res = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
-                body: JSON.stringify({
-                    model,
-                    web_search_options: {
-                        user_location: { type: 'approximate', approximate: { country: 'JP' } }
-                    },
-                    messages: [{ role: 'user', content: input }],
-                    max_tokens: maxTok || 16000
-                }),
-                signal: controller.signal
-            });
-        } else {
-            // 汎用モデル → Responses API + web_search_preview
-            res = await fetch('https://api.openai.com/v1/responses', {
-                method: 'POST',
-                headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
-                body: JSON.stringify({
-                    model,
-                    tools: [{ type:'web_search_preview', search_context_size: ctxSize||'medium', user_location:{type:'approximate',country:'JP'} }],
-                    input, max_output_tokens: maxTok||16000
-                }),
-                signal: controller.signal
-            });
+        if(isSearch){
+            res=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+                body:JSON.stringify({model,web_search_options:{user_location:{type:'approximate',approximate:{country:'JP'}}},messages:[{role:'user',content:input}],max_tokens:maxTok||16000}),signal:controller.signal});
+        }else{
+            res=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+                body:JSON.stringify({model,tools:[{type:'web_search_preview',search_context_size:ctxSize||'medium',user_location:{type:'approximate',country:'JP'}}],input,max_output_tokens:maxTok||16000}),signal:controller.signal});
         }
-        clearTimeout(timer);
-        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message||`API Error: ${res.status}`); }
-        const data = await res.json();
-
-        // レスポンス形式を統一（output_textプロパティを保証）
-        if (isSearchModel) {
-            data.output_text = data.choices?.[0]?.message?.content || '';
-            // Chat Completionsのcitationsをoutput形式に変換
-            const annotations = data.choices?.[0]?.message?.annotations || [];
-            data.output = [{
-                type: 'message',
-                content: [{
-                    annotations: annotations.map(a => ({
-                        type: 'url_citation',
-                        url: a.url || a.url_citation?.url || '',
-                        title: a.title || a.url_citation?.title || ''
-                    }))
-                }]
-            }];
+        clearTimeout(timer);console.log(`[API] status=${res.status}`);
+        if(!res.ok){const e=await res.json().catch(()=>({}));console.error('[API] error:',e);throw new Error(e.error?.message||`API Error: ${res.status}`);}
+        const data=await res.json();console.log('[API] ok, length='+JSON.stringify(data).length);
+        if(isSearch){
+            data.output_text=data.choices?.[0]?.message?.content||'';
+            const ann=data.choices?.[0]?.message?.annotations||[];
+            data.output=[{type:'message',content:[{annotations:ann.map(a=>({type:'url_citation',url:a.url||a.url_citation?.url||'',title:a.title||a.url_citation?.title||''}))}]}];
         }
         return data;
-    } catch (err) {
-        clearTimeout(timer);
-        if (err.name === 'AbortError') {
-            throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。タイムアウトを延長するか、検索特化モデルをお試しください。`);
-        }
-        throw err;
-    }
+    }catch(err){clearTimeout(timer);if(err.name==='AbortError')throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。モデルやタイムアウト値を変更してみてください。`);throw err;}
 }
 
-// ===== 結果表示 =====
-function displayResult(data) {
-    const div = document.getElementById('results');
-    let text = data.output_text || '', citations = [];
-    if (data.output && Array.isArray(data.output)) {
-        for (const item of data.output) if (item.type==='message'&&item.content)
-            for (const c of item.content) if (c.annotations) for (const a of c.annotations)
-                if (a.type==='url_citation') citations.push({url:a.url,title:a.title||a.url});
+// ===== ルート結果表示（ジョルダン風タイムライン） =====
+function displayRouteResult(data){
+    const text=data.output_text||'';
+    let routes=null;
+    try{
+        // JSON部分を抽出
+        let jsonStr=text;
+        const m1=text.match(/```json\s*([\s\S]*?)```/);
+        if(m1)jsonStr=m1[1];
+        else{const m2=text.match(/\{[\s\S]*"routes"[\s\S]*\}/);if(m2)jsonStr=m2[0];}
+        const parsed=JSON.parse(jsonStr);
+        if(parsed.routes&&parsed.routes.length)routes=parsed;
+    }catch(e){console.log('[Parse] JSON parse failed, fallback to markdown',e);}
+
+    if(!routes){displayFallback(data);return;}
+
+    const div=document.getElementById('results');
+    let html='';
+
+    routes.routes.forEach((r,i)=>{
+        html+=`<div class="route-card">`;
+        // ヘッダー
+        html+=`<div class="route-header">
+            <div><span class="route-label">ルート${i+1}</span></div>
+            <div class="route-time-big">${esc(r.departure)} <span style="color:#64748b;font-size:14px;">→</span> <span class="arr">${esc(r.arrival)}</span></div>
+            <div class="route-meta">
+                <span class="route-badge badge-duration">${esc(r.duration)}</span>
+                <span class="route-badge badge-transfer">乗換 ${r.transfers}回</span>
+                <span class="route-badge badge-fare">${esc(r.icFare||r.fare)}</span>
+                ${r.expressFare?`<span class="route-badge" style="background:rgba(239,68,68,0.1);color:#fca5a5;">特急 ${esc(r.expressFare)}</span>`:''}
+            </div>
+        </div>`;
+
+        // タイムライン
+        html+=`<div class="route-timeline">`;
+        if(r.segments) r.segments.forEach((seg,si)=>{
+            if(seg.type==='ride'){
+                const color=getLineColor(seg.line);
+                const isFirst=si===0;
+                const isLast=si===r.segments.length-1;
+
+                // 出発駅
+                html+=`<div class="tl-segment">
+                    <div class="tl-dot ${isFirst?'start':'transfer'}" style="border-color:${color};${isFirst?'background:'+color:''}"></div>
+                    <div class="tl-line" style="background:${color};${isLast?'bottom:18px':''}"></div>
+                    <div class="tl-station">
+                        <span class="tl-station-time">${esc(seg.departureTime)}</span>
+                        <span class="tl-station-name">${esc(seg.from)}</span>
+                        <span class="tl-station-platform">${esc(seg.fromPlatform||'')}</span>
+                    </div>
+                    <div class="tl-ride">
+                        <div class="tl-ride-line" style="background:${color}22;color:${color};border:1px solid ${color}44;">${esc(seg.line)} ${seg.trainType?esc(seg.trainType):''}</div>
+                        <div class="tl-ride-detail">
+                            <span>${esc(seg.direction||'')}</span>
+                            ${seg.boardingPosition?`<span>乗車位置: ${esc(seg.boardingPosition)}</span>`:''}
+                            ${seg.doorSide?`<span>ドア: ${esc(seg.doorSide)}</span>`:''}
+                            ${seg.crowding?`<span>混雑: ${esc(seg.crowding)}</span>`:''}
+                        </div>
+                    </div>
+                </div>`;
+
+                // 終着駅（最後のsegmentのみ）
+                if(isLast){
+                    html+=`<div class="tl-segment" style="padding-bottom:0;">
+                        <div class="tl-dot end"></div>
+                        <div class="tl-station">
+                            <span class="tl-station-time">${esc(seg.arrivalTime)}</span>
+                            <span class="tl-station-name">${esc(seg.to)}</span>
+                            <span class="tl-station-platform">${esc(seg.toPlatform||'')}</span>
+                        </div>
+                    </div>`;
+                }
+            } else if(seg.type==='transfer'){
+                html+=`<div class="tl-segment" style="padding-left:28px;padding-bottom:0;">
+                    <div class="tl-transfer-box">乗換 ${esc(seg.station)} ${seg.minutes?seg.minutes+'分':''}</div>
+                </div>`;
+            }
+        });
+        html+=`</div>`;
+
+        // 注意事項
+        if(r.notes&&r.notes.length&&r.notes[0]){
+            html+=`<div class="route-notes">${r.notes.map(n=>`<p>${esc(n)}</p>`).join('')}</div>`;
+        }
+        html+=`</div>`;
+    });
+
+    // 運行情報
+    if(routes.serviceInfo&&routes.serviceInfo!=='平常運転'){
+        html+=`<div class="route-notes" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:10px 14px;margin-bottom:10px;"><p class="warn">${esc(routes.serviceInfo)}</p></div>`;
     }
-    let html = mdToHtml(text);
-    let src = '';
-    if (citations.length) {
-        const u = [...new Map(citations.map(c=>[c.url,c])).values()];
-        src = `<div class="sources"><h4>参考ソース</h4>${u.map(c=>`<a href="${escapeHtml(c.url)}" target="_blank" rel="noopener">${escapeHtml(c.title)}</a>`).join('')}</div>`;
-    }
-    div.innerHTML = `<div class="result-card"><h3>検索結果</h3><div class="result-content">${html}</div>${src}</div>`;
+
+    // citations
+    html+=buildCitationsHtml(data);
+    div.innerHTML=html;
+}
+
+// ===== フォールバック（Markdown表示） =====
+function displayFallback(data){
+    const div=document.getElementById('results');
+    const text=data.output_text||'';
+    div.innerHTML=`<div class="result-card"><h3>検索結果</h3><div class="result-content">${mdToHtml(text)}</div>${buildCitationsHtml(data)}</div>`;
+}
+
+function buildCitationsHtml(data){
+    let citations=[];
+    if(data.output&&Array.isArray(data.output))for(const item of data.output)if(item.type==='message'&&item.content)for(const c of item.content)if(c.annotations)for(const a of c.annotations)if(a.type==='url_citation'&&a.url)citations.push({url:a.url,title:a.title||a.url});
+    if(!citations.length)return '';
+    const u=[...new Map(citations.map(c=>[c.url,c])).values()];
+    return `<div class="sources"><h4>参考ソース</h4>${u.map(c=>`<a href="${escapeHtml(c.url)}" target="_blank">${escapeHtml(c.title)}</a>`).join('')}</div>`;
 }
 
 // ===== Markdown→HTML =====
-function mdToHtml(md) {
-    if (!md) return '<p>結果を取得できませんでした。</p>';
-    let h = escapeHtml(md);
-    h = h.replace(/```[\s\S]*?```/g,m=>{const c=m.replace(/```\w*\n?/,'').replace(/```$/,'');return `<pre><code>${c}</code></pre>`;});
-    h = h.replace(/((\|[^\n]+\|\n)+)/g,tbl=>{
-        const rows=tbl.trim().split('\n');if(rows.length<2)return tbl;let t='<table>';
-        rows.forEach((r,i)=>{if(r.match(/^\|[\s\-:|]+\|$/))return;const cells=r.split('|').filter((_,j,a)=>j>0&&j<a.length-1);
-        const tag=i===0?'th':'td';t+='<tr>'+cells.map(c=>`<${tag}>${c.trim()}</${tag}>`).join('')+'</tr>';});return t+'</table>';
-    });
-    h=h.replace(/^####\s(.+)$/gm,'<h4>$1</h4>');h=h.replace(/^###\s(.+)$/gm,'<h3>$1</h3>');
-    h=h.replace(/^##\s(.+)$/gm,'<h2>$1</h2>');h=h.replace(/^#\s(.+)$/gm,'<h1>$1</h1>');
-    h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');
-    h=h.replace(/^- (.+)$/gm,'<li>$1</li>');h=h.replace(/^(\d+)\.\s(.+)$/gm,'<li>$2</li>');
-    h=h.replace(/((<li>.*<\/li>\n?)+)/g,'<ul>$1</ul>');
-    h=h.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
-    h=h.replace(/\n\n/g,'</p><p>');h='<p>'+h+'</p>';
-    h=h.replace(/<p>\s*<\/p>/g,'');
-    h=h.replace(/<p>\s*(<h[1-6]>)/g,'$1').replace(/(<\/h[1-6]>)\s*<\/p>/g,'$1');
-    h=h.replace(/<p>\s*(<table>)/g,'$1').replace(/(<\/table>)\s*<\/p>/g,'$1');
-    h=h.replace(/<p>\s*(<ul>)/g,'$1').replace(/(<\/ul>)\s*<\/p>/g,'$1');
-    return h;
-}
+function mdToHtml(md){if(!md)return '<p>結果を取得できませんでした。</p>';let h=escapeHtml(md);h=h.replace(/```[\s\S]*?```/g,m=>{const c=m.replace(/```\w*\n?/,'').replace(/```$/,'');return `<pre><code>${c}</code></pre>`;});h=h.replace(/((\|[^\n]+\|\n)+)/g,tbl=>{const rows=tbl.trim().split('\n');if(rows.length<2)return tbl;let t='<table>';rows.forEach((r,i)=>{if(r.match(/^\|[\s\-:|]+\|$/))return;const cells=r.split('|').filter((_,j,a)=>j>0&&j<a.length-1);const tag=i===0?'th':'td';t+='<tr>'+cells.map(c=>`<${tag}>${c.trim()}</${tag}>`).join('')+'</tr>';});return t+'</table>';});h=h.replace(/^####\s(.+)$/gm,'<h4>$1</h4>');h=h.replace(/^###\s(.+)$/gm,'<h3>$1</h3>');h=h.replace(/^##\s(.+)$/gm,'<h2>$1</h2>');h=h.replace(/^#\s(.+)$/gm,'<h1>$1</h1>');h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');h=h.replace(/^- (.+)$/gm,'<li>$1</li>');h=h.replace(/^(\d+)\.\s(.+)$/gm,'<li>$2</li>');h=h.replace(/((<li>.*<\/li>\n?)+)/g,'<ul>$1</ul>');h=h.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');h=h.replace(/\n\n/g,'</p><p>');h='<p>'+h+'</p>';h=h.replace(/<p>\s*<\/p>/g,'');h=h.replace(/<p>\s*(<h[1-6]>)/g,'$1').replace(/(<\/h[1-6]>)\s*<\/p>/g,'$1');h=h.replace(/<p>\s*(<table>)/g,'$1').replace(/(<\/table>)\s*<\/p>/g,'$1');h=h.replace(/<p>\s*(<ul>)/g,'$1').replace(/(<\/ul>)\s*<\/p>/g,'$1');return h;}
 function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+function esc(s){return s==null?'':escapeHtml(String(s));}
 
-// ===== オフラインキャッシュ =====
-function cacheResult() {
-    if (lastResultText) localStorage.setItem('cached_result', JSON.stringify({ text: lastResultText, params: lastSearchParams, time: Date.now() }));
-}
-window.addEventListener('load', () => {
-    try {
-        const c = JSON.parse(localStorage.getItem('cached_result')||'null');
-        if (c && typeof c.text === 'string' && Date.now() - c.time < 3600000) {
-            // mdToHtml内部でescapeHtmlを通すのでXSSは防がれる
-            document.getElementById('results').innerHTML = `<div class="result-card" style="opacity:0.7;"><h3>前回の検索結果（キャッシュ）</h3><div class="result-content">${mdToHtml(c.text)}</div></div>`;
-        }
-    } catch { /* キャッシュ破損時は無視 */ }
-});
-
-// ===== 徒歩ナビ連携 =====
-function openWalkNav() {
-    if (!lastSearchParams) return;
-    const from = encodeURIComponent(lastSearchParams.from + '駅');
-    const to = encodeURIComponent(lastSearchParams.to + '駅');
-    window.open(`https://www.google.com/maps/dir/${from}/${to}/@?dirflg=w`, '_blank');
-}
-
-// ===== コピー & 共有 =====
-function copyResult() {
-    if (!lastResultText) return;
-    navigator.clipboard.writeText(lastResultText).then(()=>alert('コピーしました')).catch(()=>{});
-}
-function shareResult() {
-    if (!lastResultText || !navigator.share) { copyResult(); return; }
-    const p = lastSearchParams;
-    navigator.share({title:`${p.from}→${p.to}`,text:lastResultText.slice(0,500)+'...'}).catch(()=>{});
-}
+// ===== 徒歩ナビ・コピー・共有 =====
+function openWalkNav(){if(!lastSearchParams)return;window.open(`https://www.google.com/maps/dir/${encodeURIComponent(lastSearchParams.from+'駅')}/${encodeURIComponent(lastSearchParams.to+'駅')}/@?dirflg=w`,'_blank');}
+function copyResult(){if(!lastResultText)return;navigator.clipboard.writeText(lastResultText).then(()=>alert('コピーしました')).catch(()=>{});}
+function shareResult(){if(!lastResultText||!navigator.share){copyResult();return;}navigator.share({title:`${lastSearchParams.from}→${lastSearchParams.to}`,text:lastResultText.slice(0,500)+'...'}).catch(()=>{});}
 
 // ===== 降車アラーム =====
-function setAlarm() {
-    if (!lastSearchParams) return;
-    const min = prompt('到着の何分前にアラーム？','3');
-    if (!min||isNaN(min)) return;
-    startAlarm(parseInt(min)*60, `${lastSearchParams.to}駅の${min}分前`);
-    // 通知許可リクエスト
-    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
-}
-function startAlarm(sec, label) {
-    cancelAlarm(); let rem = sec;
-    const bar=document.getElementById('alarmBar'),tEl=document.getElementById('alarmTime'),lEl=document.getElementById('alarmLabel');
-    bar.classList.add('active'); lEl.textContent = label;
-    function up() {
-        tEl.textContent = `${String(Math.floor(rem/60)).padStart(2,'0')}:${String(rem%60).padStart(2,'0')}`;
-        if (rem<=0) {
-            cancelAlarm();
-            try { if('vibrate' in navigator) navigator.vibrate([500,200,500,200,500]);
-                const a=new AudioContext();[800,1000,800,1000,800].forEach((f,i)=>{const o=a.createOscillator();o.frequency.value=f;o.connect(a.destination);o.start(a.currentTime+i*0.3);o.stop(a.currentTime+i*0.3+0.2);}); } catch{}
-            if ('Notification' in window && Notification.permission==='granted') new Notification('降車アラーム',{body:label+'\nまもなく到着します！',icon:'🚃'});
-            alert(`${label}\nまもなく到着します！`); return;
-        }
-        rem--;
-    }
-    up(); alarmTimer = setInterval(up, 1000);
-}
-function cancelAlarm() { if(alarmTimer){clearInterval(alarmTimer);alarmTimer=null;} document.getElementById('alarmBar').classList.remove('active'); }
+function setAlarm(){if(!lastSearchParams)return;const min=prompt('到着の何分前にアラーム？','3');if(!min||isNaN(min))return;startAlarm(parseInt(min)*60,`${lastSearchParams.to}駅の${min}分前`);if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();}
+function startAlarm(sec,label){cancelAlarm();let rem=sec;const bar=document.getElementById('alarmBar'),tEl=document.getElementById('alarmTime'),lEl=document.getElementById('alarmLabel');bar.classList.add('active');lEl.textContent=label;function up(){tEl.textContent=`${String(Math.floor(rem/60)).padStart(2,'0')}:${String(rem%60).padStart(2,'0')}`;if(rem<=0){cancelAlarm();try{if('vibrate' in navigator)navigator.vibrate([500,200,500,200,500]);const a=new AudioContext();[800,1000,800,1000,800].forEach((f,i)=>{const o=a.createOscillator();o.frequency.value=f;o.connect(a.destination);o.start(a.currentTime+i*0.3);o.stop(a.currentTime+i*0.3+0.2);});}catch{}if('Notification' in window&&Notification.permission==='granted')new Notification('降車アラーム',{body:label+'\nまもなく到着します！'});alert(`${label}\nまもなく到着します！`);return;}rem--;}up();alarmTimer=setInterval(up,1000);}
+function cancelAlarm(){if(alarmTimer){clearInterval(alarmTimer);alarmTimer=null;}document.getElementById('alarmBar').classList.remove('active');}
 
 // ===== 旅費メモ =====
-function loadExpenses() {
-    const list = JSON.parse(localStorage.getItem('expenses')||'[]');
-    renderExpenses(list);
-}
-function renderExpenses(list) {
-    const bar = document.getElementById('expenseBar');
-    if (!list.length) { bar.style.display = 'none'; return; }
-    bar.style.display = 'block';
-    const el = document.getElementById('expenseList');
-    el.innerHTML = list.map((e,i)=>`<div class="item"><span>${escapeHtml(e.label)}</span><span>¥${e.amount.toLocaleString()} <span class="del" style="cursor:pointer;color:#64748b;" onclick="removeExpense(${i})">&times;</span></span></div>`).join('');
-    document.getElementById('expenseTotal').textContent = '¥' + list.reduce((s,e)=>s+e.amount,0).toLocaleString();
-}
-function addExpense(label, amount) {
-    const list = JSON.parse(localStorage.getItem('expenses')||'[]');
-    list.push({label, amount, date: new Date().toISOString().split('T')[0]});
-    localStorage.setItem('expenses', JSON.stringify(list));
-    renderExpenses(list);
-}
-function removeExpense(i) {
-    const list = JSON.parse(localStorage.getItem('expenses')||'[]');
-    list.splice(i,1);
-    localStorage.setItem('expenses', JSON.stringify(list));
-    renderExpenses(list);
-}
-function clearExpenses() { if(!confirm('旅費メモをクリアしますか？'))return; localStorage.removeItem('expenses'); renderExpenses([]); }
-function copyExpenses() {
-    const list = JSON.parse(localStorage.getItem('expenses')||'[]');
-    const txt = list.map(e=>`${e.date} ${e.label}: ¥${e.amount.toLocaleString()}`).join('\n') + `\n合計: ¥${list.reduce((s,e)=>s+e.amount,0).toLocaleString()}`;
-    navigator.clipboard.writeText(txt).then(()=>alert('コピーしました'));
-}
-function addExpenseFromResult() {
-    if (!lastSearchParams) return;
-    const label = `${lastSearchParams.from}→${lastSearchParams.to}`;
-    const amountStr = prompt(`「${label}」の運賃を入力（数字のみ）:`, '');
-    if (!amountStr || isNaN(amountStr)) return;
-    addExpense(label, parseInt(amountStr));
-}
+function loadExpenses(){renderExpenses(JSON.parse(localStorage.getItem('expenses')||'[]'));}
+function renderExpenses(list){const bar=document.getElementById('expenseBar');if(!list.length){bar.style.display='none';return;}bar.style.display='block';document.getElementById('expenseList').innerHTML=list.map((e,i)=>`<div class="item"><span>${escapeHtml(e.label)}</span><span>¥${e.amount.toLocaleString()} <span class="del" style="cursor:pointer;color:#64748b;" onclick="removeExpense(${i})">&times;</span></span></div>`).join('');document.getElementById('expenseTotal').textContent='¥'+list.reduce((s,e)=>s+e.amount,0).toLocaleString();}
+function addExpense(label,amount){const list=JSON.parse(localStorage.getItem('expenses')||'[]');list.push({label,amount,date:new Date().toISOString().split('T')[0]});localStorage.setItem('expenses',JSON.stringify(list));renderExpenses(list);}
+function removeExpense(i){const list=JSON.parse(localStorage.getItem('expenses')||'[]');list.splice(i,1);localStorage.setItem('expenses',JSON.stringify(list));renderExpenses(list);}
+function clearExpenses(){if(!confirm('旅費メモをクリアしますか？'))return;localStorage.removeItem('expenses');renderExpenses([]);}
+function copyExpenses(){const list=JSON.parse(localStorage.getItem('expenses')||'[]');navigator.clipboard.writeText(list.map(e=>`${e.date} ${e.label}: ¥${e.amount.toLocaleString()}`).join('\n')+`\n合計: ¥${list.reduce((s,e)=>s+e.amount,0).toLocaleString()}`).then(()=>alert('コピーしました'));}
+function addExpenseFromResult(){if(!lastSearchParams)return;const label=`${lastSearchParams.from}→${lastSearchParams.to}`;const a=prompt(`「${label}」の運賃（数字のみ）:`,'');if(!a||isNaN(a))return;addExpense(label,parseInt(a));}
 
 // ===== お気に入り =====
-function getFavKey() { return lastSearchParams ? `${lastSearchParams.from}→${lastSearchParams.to}` : null; }
-function toggleFavorite() {
-    const key=getFavKey(); if(!key) return;
-    let favs=JSON.parse(localStorage.getItem('route_favs')||'[]');
-    if(favs.includes(key)) favs=favs.filter(f=>f!==key); else { favs.unshift(key); if(favs.length>20) favs=favs.slice(0,20); }
-    localStorage.setItem('route_favs',JSON.stringify(favs)); updateFavBtn(); loadFavorites();
-}
-function updateFavBtn() {
-    const key=getFavKey(),btn=document.getElementById('favBtn'),favs=JSON.parse(localStorage.getItem('route_favs')||'[]');
-    if(key&&favs.includes(key)){btn.innerHTML='&#9733; お気に入り';btn.classList.add('active');}else{btn.innerHTML='&#9734; お気に入り';btn.classList.remove('active');}
-}
-function loadFavorites() {
-    const favs=JSON.parse(localStorage.getItem('route_favs')||'[]'),sec=document.getElementById('favSection'),list=document.getElementById('favList');
-    if(!favs.length){sec.style.display='none';return;} sec.style.display='block';
-    list.innerHTML=favs.map(f=>{const[a,b]=f.split('→');return `<span class="tag fav" onclick="useFav('${esc(a)}','${esc(b)}')">${escapeHtml(f)}<span class="del" onclick="event.stopPropagation();removeFav('${esc(f)}')">&times;</span></span>`;}).join('');
-}
+function getFavKey(){return lastSearchParams?`${lastSearchParams.from}→${lastSearchParams.to}`:null;}
+function toggleFavorite(){const key=getFavKey();if(!key)return;let favs=JSON.parse(localStorage.getItem('route_favs')||'[]');if(favs.includes(key))favs=favs.filter(f=>f!==key);else{favs.unshift(key);if(favs.length>20)favs=favs.slice(0,20);}localStorage.setItem('route_favs',JSON.stringify(favs));updateFavBtn();loadFavorites();}
+function updateFavBtn(){const key=getFavKey(),btn=document.getElementById('favBtn'),favs=JSON.parse(localStorage.getItem('route_favs')||'[]');if(key&&favs.includes(key)){btn.innerHTML='&#9733; お気に入り';btn.classList.add('active');}else{btn.innerHTML='&#9734; お気に入り';btn.classList.remove('active');}}
+function loadFavorites(){const favs=JSON.parse(localStorage.getItem('route_favs')||'[]'),sec=document.getElementById('favSection'),list=document.getElementById('favList');if(!favs.length){sec.style.display='none';return;}sec.style.display='block';list.innerHTML=favs.map(f=>{const[a,b]=f.split('→');return `<span class="tag fav" onclick="useFav('${ea(a)}','${ea(b)}')">${escapeHtml(f)}<span class="del" onclick="event.stopPropagation();removeFav('${ea(f)}')">&times;</span></span>`;}).join('');}
 function useFav(a,b){document.getElementById('fromStation').value=a;document.getElementById('toStation').value=b;}
 function removeFav(k){let f=JSON.parse(localStorage.getItem('route_favs')||'[]');f=f.filter(x=>x!==k);localStorage.setItem('route_favs',JSON.stringify(f));loadFavorites();updateFavBtn();}
 
 // ===== 検索履歴 =====
 function addHistory(a,b){let h=JSON.parse(localStorage.getItem('route_history')||'[]');const e=`${a} → ${b}`;h=h.filter(x=>x!==e);h.unshift(e);if(h.length>15)h=h.slice(0,15);localStorage.setItem('route_history',JSON.stringify(h));loadHistory();}
-function loadHistory(){
-    const h=JSON.parse(localStorage.getItem('route_history')||'[]'),sec=document.getElementById('historySection'),list=document.getElementById('historyList');
-    if(!h.length){sec.style.display='none';return;} sec.style.display='block';
-    list.innerHTML=h.map(x=>{const[a,b]=x.split(' → ');return `<span class="tag" onclick="useFav('${esc(a)}','${esc(b)}')">${escapeHtml(x)}</span>`;}).join('');
-}
+function loadHistory(){const h=JSON.parse(localStorage.getItem('route_history')||'[]'),sec=document.getElementById('historySection'),list=document.getElementById('historyList');if(!h.length){sec.style.display='none';return;}sec.style.display='block';list.innerHTML=h.map(x=>{const[a,b]=x.split(' → ');return `<span class="tag" onclick="useFav('${ea(a)}','${ea(b)}')">${escapeHtml(x)}</span>`;}).join('');}
 
 // ===== ユーティリティ =====
 function showError(msg){document.getElementById('results').innerHTML=`<div class="error-msg">${escapeHtml(msg)}</div>`;}
-function esc(s){return s.replace(/'/g,"\\'").replace(/"/g,'&quot;');}
+function ea(s){return s.replace(/'/g,"\\'").replace(/"/g,'&quot;');}
 
-// Enterキーで検索
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('searchBtn').disabled){const a=document.activeElement;if(['fromStation','toStation','trainName'].includes(a.id)||a.classList.contains('via-input'))doSearch();}});
+// オフラインキャッシュ読み込み
+window.addEventListener('load',()=>{try{const c=JSON.parse(localStorage.getItem('cached_result')||'null');if(c&&typeof c.text==='string'&&Date.now()-c.time<3600000){document.getElementById('results').innerHTML=`<div class="result-card" style="opacity:0.6;"><h3>前回の検索結果</h3><div class="result-content">${mdToHtml(c.text)}</div></div>`;}}catch{}});
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('searchBtn').disabled){const a=document.activeElement;if(['fromStation','toStation','viaStation','trainName'].includes(a.id))doSearch();}});
 </script>
 </body>
 </html>
