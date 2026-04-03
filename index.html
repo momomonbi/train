@@ -177,7 +177,7 @@
 <div class="container">
     <header>
         <h1>電車乗り換え検索</h1>
-        <p>GPT-5.4 Web Search で最新の経路情報を取得</p>
+        <p>AI Web Search で最新の経路情報を取得</p>
     </header>
 
     <div class="settings-toggle">
@@ -653,8 +653,9 @@ async function runSearch(prompt) {
 function setLoading(on) {
     const btn = document.getElementById('searchBtn');
     if (on) {
+        const modelName = document.getElementById('modelSelect').value;
         btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;"></span> 検索中...';
-        document.getElementById('results').innerHTML = '<div class="result-card loading"><div class="spinner"></div><p>GPT-5.4がウェブ検索で情報を取得中...</p></div>';
+        document.getElementById('results').innerHTML = `<div class="result-card loading"><div class="spinner"></div><p>${escapeHtml(modelName)} がウェブ検索で情報を取得中...</p></div>`;
     } else {
         btn.disabled = false;
         const labels = { route:'経路を検索', timetable:'時刻表を検索', commuter:'定期代を検索', status:'運行情報を取得' };
