@@ -806,14 +806,31 @@ function displayRouteResult(data){
     const text=data.output_text||'';
     let routes=null;
     try{
-        // JSON部分を抽出
-        let jsonStr=text;
-        const m1=text.match(/```json\s*([\s\S]*?)```/);
-        if(m1)jsonStr=m1[1];
-        else{const m2=text.match(/\{[\s\S]*"routes"[\s\S]*\}/);if(m2)jsonStr=m2[0];}
-        const parsed=JSON.parse(jsonStr);
-        if(parsed.routes&&parsed.routes.length)routes=parsed;
-    }catch(e){console.log('[Parse] JSON parse failed, fallback to markdown',e);}
+        // 引用マーカーを除去（【1†source】等）してからJSON解析
+        let cleaned = text.replace(/【[^】]*】/g, '');
+        // JSON部分を抽出（複数パターン対応）
+        let jsonStr = cleaned;
+        const m1 = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (m1) jsonStr = m1[1];
+        else {
+            const m2 = cleaned.match(/\{[\s\S]*?"routes"\s*:\s*\[[\s\S]*\]/);
+            if (m2) {
+                // 最後の } を見つけて閉じる
+                let s = m2[0];
+                let depth = 0, end = 0;
+                for (let i = 0; i < s.length; i++) {
+                    if (s[i] === '{') depth++;
+                    else if (s[i] === '}') { depth--; if (depth === 0) { end = i + 1; break; } }
+                }
+                if (end > 0) jsonStr = s.slice(0, end);
+            }
+        }
+        // 末尾のゴミを除去
+        jsonStr = jsonStr.trim().replace(/,\s*([}\]])/g, '$1');
+        const parsed = JSON.parse(jsonStr);
+        if (parsed.routes && parsed.routes.length) routes = parsed;
+        console.log('[Parse] JSON parse success, routes:', parsed.routes.length);
+    } catch(e) { console.log('[Parse] JSON parse failed, fallback to markdown', e, '\ntext preview:', text.slice(0, 300)); }
 
     if(!routes){displayFallback(data);return;}
 
