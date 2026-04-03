@@ -659,9 +659,10 @@ async function startVerification(apiKey, routes){
     const p = lastSearchParams;
     const routesSummary = JSON.stringify(routes, null, 0).slice(0, 3000);
 
+    const verifyRoute = p.via ? `${p.from}駅→${p.via.split(/[,、，\s]+/).filter(s=>s).join('→')}→${p.to}駅` : `${p.from}駅→${p.to}駅`;
     const verifyPrompt = `あなたは日本の電車乗り換え案内の専門家です。以下の検索結果をウェブ検索で検証してください。
 
-【検索条件】${p.from}駅→${p.to}駅 ${p.date} ${p.time}
+【検索条件】${verifyRoute} ${p.date} ${p.time}${p.via?`\n※経由駅（${p.via}）を必ず通るルートであることを検証してください。経由駅を通っていないルートは修正が必要です。`:''}
 
 【検索結果（検証対象）】
 ${routesSummary}
@@ -772,15 +773,31 @@ function buildRoutePrompt(p){
     let optFields = '';
     if(p.boardingPos) optFields += ', "boardingPosition": "乗車位置（前寄り等）"';
     if(p.doorSide) optFields += ', "doorSide": "ドア開方向（左/右）"';
-    if(p.crowding) optFields += ', "crowding": 1〜5の数値（1=空いている,2=余裕あり,3=普通,4=混雑,5=非常に混雑）';
+    if(p.crowding) optFields += ', "crowding": "1〜5の整数値（必須。1=空いている,2=余裕あり,3=普通,4=混雑,5=非常に混雑）"';
+
+    // 経由駅がある場合、ルート表記を A→経由1→経由2→B 形式にする
+    const viaStations = p.via ? p.via.split(/[,、，\s]+/).filter(s=>s) : [];
+    const routeExpr = viaStations.length
+        ? `${p.from}駅 → ${viaStations.map(s=>s.replace(/駅$/,'')+'駅').join(' → ')} → ${p.to}駅`
+        : `${p.from}駅 → ${p.to}駅`;
+
+    let viaInstruction = '';
+    if(viaStations.length){
+        viaInstruction = `\n\n【経由駅に関する重要な制約】
+経由駅（${viaStations.join('、')}）を必ず通るルートを検索してください。
+- 各ルートは必ず指定された経由駅を順番に通過する必要があります
+- 経由駅では乗換（transferセグメント）を挟んでください
+- 直通路線がない場合は、経由駅を通る乗り換えルートを提示してください
+- 経由駅を通らないルートは絶対に提示しないでください`;
+    }
 
     return `あなたは日本の電車乗り換え案内の専門家です。ウェブ検索を使って最新の経路を調べてください。
 
 【条件】
-- ${p.from}駅 → ${p.to}駅
+- ${routeExpr}
 - ${p.date} ${p.time}（${p.timeTypeText}）
 - 優先: ${p.priorityText} / 歩行: ${p.walkText}${extra}
-${wm[p.walkText]||''}
+${wm[p.walkText]||''}${viaInstruction}
 
 【重要】必ず以下のJSON形式のみで回答してください。JSONの前後に説明文は不要です。
 
@@ -826,7 +843,8 @@ ${wm[p.walkText]||''}
 }
 \`\`\`
 
-最大3ルート。各rideセグメントのstopsには出発駅・到着駅を除く全ての途中停車駅と各駅の到着予想時刻を含めてください。番線はウェブ検索で調べ、不明なら"要確認"。`;
+最大3ルート。各rideセグメントのstopsには出発駅・到着駅を除く全ての途中停車駅と各駅の到着予想時刻を含めてください。番線はウェブ検索で調べ、不明なら"要確認"。${p.crowding?'\n\n【混雑度について】各rideセグメントに必ず"crowding"フィールド（1〜5の整数）を含めてください。時間帯・路線・方面から推定してください。朝ラッシュ（7:30-9:30）や夕ラッシュ（17:00-20:00）の都心方面は4〜5、逆方向や日中は1〜3が目安です。':''}`;
+}
 }
 
 // ===== ODPT API =====
