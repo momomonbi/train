@@ -20,13 +20,14 @@
 
         /* iOS zoom防止: 16px以上 */
         label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 2px; font-weight: 600; }
-        input, select, textarea {
+        input[type="text"], input[type="password"], input[type="number"], input[type="date"], input[type="time"], select, textarea {
             width: 100%; padding: 9px 11px;
             background: rgba(15,23,42,0.6); border: 1px solid rgba(100,116,139,0.35);
             border-radius: 9px; color: #e2e8f0; font-size: 16px; outline: none;
             transition: border-color 0.2s; -webkit-appearance: none;
         }
-        input:focus, select:focus { border-color: #60a5fa; }
+        select { -webkit-appearance: menulist; }
+        input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, select:focus { border-color: #60a5fa; }
         input::placeholder { color: #64748b; }
         select { cursor: pointer; }
         select option { background: #1e293b; }
@@ -115,6 +116,18 @@
         .tl-ride-line { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-bottom: 3px; }
         .tl-ride-detail { font-size: 11px; color: #94a3b8; line-height: 1.5; }
         .tl-ride-detail span { margin-right: 10px; }
+
+        /* 中間駅（折りたたみ） */
+        .tl-stops-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; margin: 2px 0 0; border: 1px solid rgba(100,116,139,0.2); border-radius: 6px; font-size: 10px; color: #64748b; cursor: pointer; background: rgba(15,23,42,0.3); transition: all 0.15s; }
+        .tl-stops-toggle:hover { color: #94a3b8; border-color: rgba(100,116,139,0.4); }
+        .tl-stops-toggle .arrow { transition: transform 0.2s; display: inline-block; }
+        .tl-stops-toggle.open .arrow { transform: rotate(90deg); }
+        .tl-stops-list { display: none; margin: 4px 0 2px; padding: 0; }
+        .tl-stops-list.open { display: block; }
+        .tl-stop { display: flex; align-items: center; gap: 8px; padding: 2px 0; position: relative; }
+        .tl-stop-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .tl-stop-time { font-size: 11px; color: #94a3b8; min-width: 36px; font-variant-numeric: tabular-nums; }
+        .tl-stop-name { font-size: 11px; color: #94a3b8; }
 
         .tl-transfer-box { display: flex; align-items: center; gap: 6px; padding: 5px 10px; margin: 4px 0; background: rgba(251,191,36,0.08); border: 1px dashed rgba(251,191,36,0.25); border-radius: 8px; font-size: 11px; color: #fde68a; }
 
@@ -481,7 +494,11 @@ ${wm[p.walkText]||''}
           "direction": "○○方面",
           "trainType": "種別（快速等）",
           "departureTime": "HH:MM",
-          "arrivalTime": "HH:MM"${optFields}
+          "arrivalTime": "HH:MM",
+          "stops": [
+            {"name": "途中駅名", "time": "HH:MM"},
+            {"name": "途中駅名", "time": "HH:MM"}
+          ]${optFields}
         },
         {
           "type": "transfer",
@@ -496,7 +513,7 @@ ${wm[p.walkText]||''}
 }
 \`\`\`
 
-最大3ルート。番線はウェブ検索で調べ、不明なら"要確認"。`;
+最大3ルート。各rideセグメントのstopsには出発駅・到着駅を除く全ての途中停車駅と各駅の到着予想時刻を含めてください。番線はウェブ検索で調べ、不明なら"要確認"。`;
 }
 
 // ===== API =====
@@ -586,13 +603,21 @@ function displayRouteResult(data){
                             ${seg.doorSide?`<span>ドア: ${esc(seg.doorSide)}</span>`:''}
                             ${seg.crowding?`<span>混雑: ${esc(seg.crowding)}</span>`:''}
                         </div>
+                        ${seg.stops&&seg.stops.length?`
+                        <div class="tl-stops-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">
+                            <span class="arrow">&#9654;</span> ${seg.stops.length}駅
+                        </div>
+                        <div class="tl-stops-list">
+                            ${seg.stops.map(st=>`<div class="tl-stop"><span class="tl-stop-dot" style="background:${color};"></span><span class="tl-stop-time">${esc(st.time)}</span><span class="tl-stop-name">${esc(st.name)}</span></div>`).join('')}
+                        </div>`:''}
                     </div>
                 </div>`;
 
-                // 終着駅（最後のsegmentのみ）
-                if(isLast){
-                    html+=`<div class="tl-segment" style="padding-bottom:0;">
-                        <div class="tl-dot end"></div>
+                // 終着駅（最後のsegment、または次がtransferの場合）
+                const nextSeg = r.segments[si+1];
+                if(isLast || (nextSeg && nextSeg.type==='transfer')){
+                    html+=`<div class="tl-segment" style="padding-bottom:${isLast?'0':'4px'};">
+                        <div class="tl-dot ${isLast?'end':'transfer'}" style="${isLast?'':'border-color:#fbbf24;background:#fbbf24;'}"></div>
                         <div class="tl-station">
                             <span class="tl-station-time">${esc(seg.arrivalTime)}</span>
                             <span class="tl-station-name">${esc(seg.to)}</span>
