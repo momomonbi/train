@@ -590,15 +590,50 @@ async function startFullFallback(apiKey, prompt){
         if(lastParsedRoutes){
             if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ 別のAIで再取得済み';}
             console.log('[Step2-Fallback] JSON成功 → タイムラインUI更新');
+            return;
+        }
+        // 4o-searchでもJSON失敗 → Step3: gpt-5.4にフォールバック
+        console.log('[Step2-Fallback] JSON再失敗 → Step3: gpt-5.4へ');
+        if(badge){badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> GPT-5.4で最終検索中...';}
+        await startStep3Fallback(apiKey, prompt, badge);
+    }catch(err){
+        if(err.name==='AbortError')return;
+        console.log('[Step2-Fallback] error:', err, '→ Step3: gpt-5.4へ');
+        // Step2エラー時もgpt-5.4にフォールバック
+        if(badge){badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> GPT-5.4で最終検索中...';}
+        await startStep3Fallback(apiKey, prompt, badge);
+    }
+}
+
+// ===== Step3: gpt-5.4 Responses APIフォールバック =====
+async function startStep3Fallback(apiKey, prompt, badge){
+    try{
+        console.log('[Step3] gpt-5.4 Responses API開始');
+        const res = await fetch('https://api.openai.com/v1/responses', {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
+            body: JSON.stringify({
+                model: 'gpt-5.4',
+                tools: [{ type:'web_search_preview', search_context_size:'medium', user_location:{type:'approximate',country:'JP'} }],
+                input: prompt, max_output_tokens: 16000
+            }),
+            signal: verifyAbort?.signal
+        });
+        if(!res.ok) throw new Error(`API Error: ${res.status}`);
+        const data = await res.json();
+        data.output_text = data.output_text || '';
+        lastResultText = data.output_text;
+        displayRouteResult(data);
+        if(lastParsedRoutes){
+            if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ GPT-5.4で再取得済み';}
         } else {
-            // 4o-searchでもJSON失敗 → Markdownのまま
+            displayFallback(data);
             if(badge){badge.className='verify-badge done';badge.innerHTML='検索完了（テキスト表示）';}
-            console.log('[Step2-Fallback] JSON再失敗 → Markdownのまま');
         }
     }catch(err){
         if(err.name==='AbortError')return;
-        console.log('[Step2-Fallback] error:', err);
-        if(badge){badge.className='verify-badge done';badge.innerHTML='再検索スキップ';}
+        console.log('[Step3] error:', err);
+        if(badge){badge.className='verify-badge done';badge.innerHTML='検索完了';}
     }
 }
 
