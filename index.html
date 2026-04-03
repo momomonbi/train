@@ -696,25 +696,10 @@ async function runSearch(prompt,isRoute){
     if(verifyAbort){verifyAbort.abort();verifyAbort=null;}
     setLoading(true);
     try{
-        // Step1: メイン検索
-        console.log('[Step1] 検索開始');
-        let data=await callAPI(apiKey,prompt,'high',16000);lastResultText=data.output_text||'';
-        console.log('[Step1] output_text length:', lastResultText.length, 'preview:', lastResultText.slice(0,300));
-
-        // Step1で空レスポンスの場合、簡略プロンプトでリトライ
-        if(isRoute && !lastResultText.trim()){
-            console.log('[Step1] 空レスポンス → 簡略プロンプトでリトライ');
-            const p = lastSearchParams;
-            const simplePrompt = `「${p.from}駅から${p.to}駅${p.via?' 経由'+p.via:''}」の電車での行き方をウェブ検索で調べて、乗り換えルートをJSON形式で回答してください。
-検索クエリ例: 「${p.from}駅から${p.to}駅 乗り換え案内」
-
-以下のJSON形式で回答:
-\`\`\`json
-{"routes":[{"departure":"HH:MM","arrival":"HH:MM","duration":"所要時間","transfers":乗換回数,"fare":"運賃","icFare":"IC運賃","expressFare":null,"segments":[{"type":"ride","from":"駅名","fromPlatform":"番線","to":"駅名","toPlatform":"番線","line":"路線名","lineCode":"","direction":"方面","trainType":"種別","departureTime":"HH:MM","arrivalTime":"HH:MM","stops":[]},{"type":"transfer","station":"乗換駅名","minutes":5}],"notes":[]}],"serviceInfo":"平常運転"}
-\`\`\``;
-            data=await callAPI(apiKey,simplePrompt,'high',16000);lastResultText=data.output_text||'';
-            console.log('[Step1-Retry] output_text length:', lastResultText.length, 'preview:', lastResultText.slice(0,300));
-        }
+        // Step1: gpt-5.4-mini メイン検索
+        console.log('[Step1] gpt-5.4-mini 検索開始');
+        const data=await callAPI(apiKey,prompt,'high',16000);lastResultText=data.output_text||'';
+        console.log('[Step1] output_text length:', lastResultText.length);
 
         if(isRoute){
             displayRouteResult(data);
@@ -738,7 +723,7 @@ async function runSearch(prompt,isRoute){
     }catch(err){showError(`エラー: ${err.message}`);}finally{setLoading(false);}
 }
 
-// ===== Step2フォールバック: 4o-searchでフル再検索（JSON失敗時） =====
+// ===== Step2フォールバック: GPT-5.4でフル再検索（JSON失敗時） =====
 async function startFullFallback(apiKey, prompt){
     const badge = document.getElementById('verifyBadge');
     if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> GPT-5.4 Thinkingで再検索中...';}
@@ -746,45 +731,22 @@ async function startFullFallback(apiKey, prompt){
     verifyAbort = new AbortController();
     try{
         console.log('[Step2-Fallback] GPT-5.4 Thinking開始');
-        const data = await callResponsesAPI(apiKey, prompt, MODEL_VERIFY, 16000, verifyAbort.signal, 'medium', 'medium');
+        const data = await callResponsesAPI(apiKey, prompt, MODEL_VERIFY, 16000, verifyAbort.signal, 'high', 'medium');
         lastResultText = data.output_text || '';
         displayRouteResult(data);
 
         if(lastParsedRoutes){
             if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ GPT-5.4 Thinkingで再取得済み';}
             console.log('[Step2-Fallback] JSON成功 → タイムラインUI更新');
-            return;
-        }
-        // 4o-searchでもJSON失敗 → Step3: gpt-5.4にフォールバック
-        console.log('[Step2-Fallback] JSON再失敗 → Step3: gpt-5.4へ');
-        if(badge){badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> GPT-5.4で最終検索中...';}
-        await startStep3Fallback(apiKey, prompt, badge);
-    }catch(err){
-        if(err.name==='AbortError')return;
-        console.log('[Step2-Fallback] error:', err, '→ Step3: gpt-5.4へ');
-        // Step2エラー時もgpt-5.4にフォールバック
-        if(badge){badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> GPT-5.4で最終検索中...';}
-        await startStep3Fallback(apiKey, prompt, badge);
-    }
-}
-
-// ===== Step3: Chat Completions API フォールバック（動作確認済みモデル） =====
-async function startStep3Fallback(apiKey, prompt, badge){
-    try{
-        console.log('[Step3] gpt-4o-mini-search-preview (Chat Completions) 開始');
-        const data = await callSearchAPI(apiKey, prompt, 'gpt-4o-mini-search-preview', 16000, verifyAbort?.signal);
-        lastResultText = data.output_text || '';
-        displayRouteResult(data);
-        if(lastParsedRoutes){
-            if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ 再取得済み';}
         } else {
             displayFallback(data);
             if(badge){badge.className='verify-badge done';badge.innerHTML='検索完了（テキスト表示）';}
+            console.log('[Step2-Fallback] JSON失敗 → テキスト表示で完了');
         }
     }catch(err){
         if(err.name==='AbortError')return;
-        console.log('[Step3] error:', err);
-        if(badge){badge.className='verify-badge done';badge.innerHTML='検索完了';}
+        console.log('[Step2-Fallback] error:', err);
+        if(badge){badge.className='verify-badge done';badge.innerHTML='再検索失敗';}
     }
 }
 
@@ -1137,16 +1099,7 @@ const MODEL_FAST = 'gpt-5.4-mini';
 const MODEL_VERIFY = 'gpt-5.4';
 
 async function callAPI(apiKey, input, ctxSize, maxTok) {
-    // Step1: Responses API を試行
-    try {
-        const data = await callResponsesAPI(apiKey, input, MODEL_FAST, maxTok, null, ctxSize || 'medium');
-        if (data.output_text && data.output_text.trim()) return data;
-        console.log('[callAPI] Responses API empty → Chat Completions fallback');
-    } catch(e) {
-        console.log('[callAPI] Responses API error:', e.message, '→ Chat Completions fallback');
-    }
-    // フォールバック: Chat Completions API（動作確認済み）
-    return callSearchAPI(apiKey, input, 'gpt-4o-mini-search-preview', maxTok);
+    return callResponsesAPI(apiKey, input, MODEL_FAST, maxTok, null, ctxSize || 'medium');
 }
 
 async function callResponsesAPI(apiKey, input, model, maxTok, signal, searchCtxSize, reasoningEffort) {
@@ -1199,43 +1152,6 @@ async function callResponsesAPI(apiKey, input, model, maxTok, signal, searchCtxS
             console.log('[API-Responses] output_text recovery:', data.output_text ? `found ${data.output_text.length} chars` : 'still empty');
         }
         data.output_text = data.output_text || '';
-        return data;
-    } catch(err) {
-        clearTimeout(timer);
-        if (err.name === 'AbortError') throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。タイムアウト値を延長してください。`);
-        throw err;
-    }
-}
-
-async function callSearchAPI(apiKey, input, model, maxTok, signal) {
-    const timeoutMs = (parseInt(document.getElementById('timeoutSec').value) || 120) * 1000;
-    const controller = new AbortController();
-    const extSignal = signal; // 外部からのsignal（検証用）
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    if (extSignal) extSignal.addEventListener('abort', () => controller.abort());
-
-    console.log(`[API] model=${model} timeout=${timeoutMs}ms`);
-    try {
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
-            body: JSON.stringify({
-                model,
-                web_search_options: { user_location: { type: 'approximate', approximate: { country: 'JP' } } },
-                messages: [{ role: 'user', content: input }],
-                max_tokens: maxTok || 16000
-            }),
-            signal: controller.signal
-        });
-        clearTimeout(timer);
-        console.log(`[API] status=${res.status}`);
-        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API Error: ${res.status}`); }
-        const data = await res.json();
-        data.output_text = data.choices?.[0]?.message?.content || '';
-        const ann = data.choices?.[0]?.message?.annotations || [];
-        data.output = [{ type:'message', content:[{ annotations: ann.map(a => ({
-            type:'url_citation', url: a.url||a.url_citation?.url||'', title: a.title||a.url_citation?.title||''
-        }))}]}];
         return data;
     } catch(err) {
         clearTimeout(timer);
