@@ -301,7 +301,7 @@
             <label class="check-label"><input type="checkbox" id="optCommuterPass" /> 定期券考慮</label>
         </div>
 
-        <button class="detail-toggle" onclick="document.getElementById('detailSection').classList.toggle('open'); this.textContent = this.textContent.includes('\u25B6') ? '\u25BC 詳細設定を閉じる' : '\u25B6 詳細設定';">\u25B6 詳細設定</button>
+        <button class="detail-toggle" onclick="document.getElementById('detailSection').classList.toggle('open'); this.textContent = this.textContent.includes('▶') ? '▼ 詳細設定を閉じる' : '▶ 詳細設定';">▶ 詳細設定</button>
         <div class="detail-section" id="detailSection">
             <label style="margin-bottom:5px;">交通手段（タップで除外）</label>
             <div class="transport-row">
@@ -419,7 +419,7 @@ function setMode(mode){
     const show=(id,v)=>{const el=document.getElementById(id);if(el)el.style.display=v?'':'none';};
     show('viaRow',mode==='route');show('checkRow',mode==='route');
     document.getElementById('detailSection').classList.remove('open');
-    const db=document.querySelector('.detail-toggle');db.style.display=mode==='route'?'':'none';db.textContent='\u25B6 詳細設定';
+    const db=document.querySelector('.detail-toggle');db.style.display=mode==='route'?'':'none';db.textContent='▶ 詳細設定';
     const btn=document.getElementById('searchBtn');
     btn.textContent={route:'経路を検索',timetable:'時刻表を検索',commuter:'定期代を検索',status:'運行情報を取得'}[mode];
 }
