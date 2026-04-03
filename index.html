@@ -14,12 +14,12 @@
         .container { max-width: 820px; margin: 0 auto; padding: 14px; }
         header { text-align: center; padding: 18px 0 12px; }
         header h1 { font-size: 22px; background: linear-gradient(90deg,#60a5fa,#34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        header p { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+        header p { font-size: 13px; color: #94a3b8; margin-top: 2px; }
 
         .card { background: rgba(30,41,59,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(100,116,139,0.25); border-radius: 14px; padding: 16px; margin-bottom: 10px; }
 
         /* iOS zoom防止: 16px以上 */
-        label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 2px; font-weight: 600; }
+        label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 2px; font-weight: 600; }
         input[type="text"], input[type="password"], input[type="number"], input[type="date"], input[type="time"], select, textarea {
             width: 100%; padding: 9px 11px;
             background: rgba(15,23,42,0.6); border: 1px solid rgba(100,116,139,0.35);
@@ -48,7 +48,7 @@
         .swap-btn { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #60a5fa; font-size: 15px; margin-top: 18px; transition: all 0.15s; flex-shrink: 0; }
         .swap-btn:hover { background: rgba(96,165,250,0.3); }
 
-        .sub-text { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+        .sub-text { font-size: 13px; color: #94a3b8; margin-top: 2px; }
         .sub-text.ok { color: #34d399; }
         .sub-text.err { color: #fca5a5; }
 
@@ -56,7 +56,7 @@
 
         .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-bottom: 10px; }
         .check-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
-        .check-label { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #cbd5e1; cursor: pointer; }
+        .check-label { display: flex; align-items: center; gap: 5px; font-size: 13px; color: #cbd5e1; cursor: pointer; }
         .check-label input[type="checkbox"] { width: 16px; height: 16px; accent-color: #60a5fa; cursor: pointer; }
 
         .detail-toggle { font-size: 12px; color: #64748b; cursor: pointer; margin-bottom: 10px; border: none; background: none; }
@@ -88,7 +88,7 @@
         .route-time-big { font-size: 20px; font-weight: 700; color: #f1f5f9; letter-spacing: -0.5px; }
         .route-time-big .arr { color: #34d399; }
         .route-meta { display: flex; gap: 8px; flex-wrap: wrap; }
-        .route-badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+        .route-badge { padding: 3px 8px; border-radius: 6px; font-size: 13px; font-weight: 600; }
         .badge-duration { background: rgba(96,165,250,0.15); color: #93c5fd; }
         .badge-transfer { background: rgba(251,191,36,0.12); color: #fde68a; }
         .badge-fare { background: rgba(52,211,153,0.12); color: #6ee7b7; }
@@ -110,15 +110,15 @@
         .tl-station { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
         .tl-station-time { font-size: 15px; font-weight: 700; color: #f1f5f9; min-width: 42px; font-variant-numeric: tabular-nums; }
         .tl-station-name { font-size: 14px; font-weight: 600; color: #e2e8f0; }
-        .tl-station-platform { font-size: 11px; color: #94a3b8; margin-left: 4px; }
+        .tl-station-platform { font-size: 13px; color: #94a3b8; margin-left: 4px; }
 
         .tl-ride { padding: 6px 0 6px 0; margin-left: 0; }
         .tl-ride-line { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-bottom: 3px; }
-        .tl-ride-detail { font-size: 11px; color: #94a3b8; line-height: 1.5; }
+        .tl-ride-detail { font-size: 13px; color: #94a3b8; line-height: 1.5; }
         .tl-ride-detail span { margin-right: 10px; }
 
         /* 中間駅（折りたたみ） */
-        .tl-stops-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; margin: 2px 0 0; border: 1px solid rgba(100,116,139,0.2); border-radius: 6px; font-size: 10px; color: #64748b; cursor: pointer; background: rgba(15,23,42,0.3); transition: all 0.15s; }
+        .tl-stops-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; margin: 2px 0 0; border: 1px solid rgba(100,116,139,0.2); border-radius: 6px; font-size: 13px; color: #64748b; cursor: pointer; background: rgba(15,23,42,0.3); transition: all 0.15s; }
         .tl-stops-toggle:hover { color: #94a3b8; border-color: rgba(100,116,139,0.4); }
         .tl-stops-toggle .arrow { transition: transform 0.2s; display: inline-block; }
         .tl-stops-toggle.open .arrow { transform: rotate(90deg); }
@@ -126,14 +126,14 @@
         .tl-stops-list.open { display: block; }
         .tl-stop { display: flex; align-items: center; gap: 8px; padding: 2px 0; position: relative; }
         .tl-stop-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-        .tl-stop-time { font-size: 11px; color: #94a3b8; min-width: 36px; font-variant-numeric: tabular-nums; }
-        .tl-stop-name { font-size: 11px; color: #94a3b8; }
+        .tl-stop-time { font-size: 13px; color: #94a3b8; min-width: 38px; font-variant-numeric: tabular-nums; }
+        .tl-stop-name { font-size: 13px; color: #94a3b8; }
 
-        .tl-transfer-box { display: flex; align-items: center; gap: 6px; padding: 5px 10px; margin: 4px 0; background: rgba(251,191,36,0.08); border: 1px dashed rgba(251,191,36,0.25); border-radius: 8px; font-size: 11px; color: #fde68a; }
+        .tl-transfer-box { display: flex; align-items: center; gap: 6px; padding: 5px 10px; margin: 4px 0; background: rgba(251,191,36,0.08); border: 1px dashed rgba(251,191,36,0.25); border-radius: 8px; font-size: 13px; color: #fde68a; }
 
         /* 注意事項 */
         .route-notes { padding: 8px 16px 12px; border-top: 1px solid rgba(100,116,139,0.12); }
-        .route-notes p { font-size: 11px; color: #94a3b8; line-height: 1.5; margin-bottom: 2px; }
+        .route-notes p { font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 2px; }
         .route-notes .warn { color: #fca5a5; }
 
         /* フォールバック（Markdown表示） */
@@ -148,12 +148,12 @@
         .result-content li { margin-bottom: 2px; }
         .result-content a { color: #38bdf8; text-decoration: none; }
         .result-content table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-        .result-content th, .result-content td { border: 1px solid rgba(100,116,139,0.3); padding: 5px 8px; text-align: left; font-size: 12px; }
+        .result-content th, .result-content td { border: 1px solid rgba(100,116,139,0.3); padding: 5px 8px; text-align: left; font-size: 13px; }
         .result-content th { background: rgba(96,165,250,0.1); color: #60a5fa; }
 
         .sources { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(100,116,139,0.15); }
-        .sources h4 { font-size: 10px; color: #64748b; margin-bottom: 4px; }
-        .sources a { display: inline-block; font-size: 10px; color: #38bdf8; text-decoration: none; margin-right: 10px; }
+        .sources h4 { font-size: 13px; color: #64748b; margin-bottom: 4px; }
+        .sources a { display: inline-block; font-size: 13px; color: #38bdf8; text-decoration: none; margin-right: 10px; }
 
         .loading { text-align: center; padding: 28px; }
         .spinner { width: 30px; height: 30px; border: 3px solid rgba(96,165,250,0.2); border-top-color: #60a5fa; border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 8px; }
@@ -165,19 +165,19 @@
         .alarm-bar { display: none; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); border-radius: 11px; margin-bottom: 10px; }
         .alarm-bar.active { display: flex; }
         .alarm-time { font-size: 24px; font-weight: 700; color: #fbbf24; font-variant-numeric: tabular-nums; }
-        .alarm-label { flex: 1; font-size: 12px; color: #fde68a; }
+        .alarm-label { flex: 1; font-size: 13px; color: #fde68a; }
         .alarm-cancel { padding: 5px 12px; border-radius: 7px; border: 1px solid rgba(251,191,36,0.4); background: transparent; color: #fbbf24; cursor: pointer; font-size: 12px; }
 
         .expense-bar { background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); border-radius: 11px; padding: 10px 14px; margin-bottom: 10px; }
         .expense-bar h4 { font-size: 12px; color: #a78bfa; margin-bottom: 6px; }
-        .expense-list { font-size: 12px; color: #c4b5fd; }
+        .expense-list { font-size: 13px; color: #c4b5fd; }
         .expense-list .item { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid rgba(139,92,246,0.1); }
         .expense-total { display: flex; justify-content: space-between; font-weight: 700; color: #a78bfa; padding-top: 4px; font-size: 13px; }
         .expense-actions { display: flex; gap: 6px; margin-top: 6px; }
-        .expense-actions button { padding: 3px 10px; border-radius: 7px; border: 1px solid rgba(139,92,246,0.3); background: transparent; color: #a78bfa; cursor: pointer; font-size: 11px; }
+        .expense-actions button { padding: 3px 10px; border-radius: 7px; border: 1px solid rgba(139,92,246,0.3); background: transparent; color: #a78bfa; cursor: pointer; font-size: 13px; }
 
         .section-title { color: #94a3b8; font-size: 12px; margin-bottom: 6px; font-weight: 600; }
-        .tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.18); border-radius: 18px; padding: 4px 11px; font-size: 11px; color: #93c5fd; cursor: pointer; margin: 0 5px 5px 0; }
+        .tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.18); border-radius: 18px; padding: 4px 11px; font-size: 13px; color: #93c5fd; cursor: pointer; margin: 0 5px 5px 0; }
         .tag:hover { background: rgba(96,165,250,0.18); }
         .tag .del { color: #64748b; margin-left: 2px; font-size: 13px; }
         .tag .del:hover { color: #fca5a5; }
@@ -613,14 +613,16 @@ function displayRouteResult(data){
                     </div>
                 </div>`;
 
-                // 終着駅（最後のsegment、または次がtransferの場合）
+                // 到着駅（最後のsegment、または次がtransferの場合）
                 const nextSeg = r.segments[si+1];
                 if(isLast || (nextSeg && nextSeg.type==='transfer')){
+                    // 次がtransferなら、transfer.stationを到着駅名として優先使用（AI出力のズレ対策）
+                    const arrName = (!isLast && nextSeg && nextSeg.station) ? nextSeg.station : seg.to;
                     html+=`<div class="tl-segment" style="padding-bottom:${isLast?'0':'4px'};">
                         <div class="tl-dot ${isLast?'end':'transfer'}" style="${isLast?'':'border-color:#fbbf24;background:#fbbf24;'}"></div>
                         <div class="tl-station">
                             <span class="tl-station-time">${esc(seg.arrivalTime)}</span>
-                            <span class="tl-station-name">${esc(seg.to)}</span>
+                            <span class="tl-station-name">${esc(arrName)}</span>
                             <span class="tl-station-platform">${esc(seg.toPlatform||'')}</span>
                         </div>
                     </div>`;
@@ -647,6 +649,10 @@ function displayRouteResult(data){
 
     // citations
     html+=buildCitationsHtml(data);
+    // 使用モデル表示
+    const usedModel = document.getElementById('modelSelect').value;
+    const isSearch = SEARCH_MODELS.includes(usedModel);
+    html+=`<div style="text-align:right;font-size:12px;color:#64748b;margin-top:4px;">使用: ${esc(usedModel)} (${isSearch?'Chat Completions':'Responses'} API)</div>`;
     div.innerHTML=html;
 }
 
