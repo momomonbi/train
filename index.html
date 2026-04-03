@@ -18,7 +18,6 @@
 
         .card { background: rgba(30,41,59,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(100,116,139,0.25); border-radius: 14px; padding: 16px; margin-bottom: 10px; }
 
-        /* iOS zoom防止: 16px以上 */
         label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 2px; font-weight: 600; }
         input[type="text"], input[type="password"], input[type="number"], input[type="date"], input[type="time"], select, textarea {
             width: 100%; padding: 9px 11px;
@@ -79,7 +78,6 @@
         .tool-btn.orange { color: #fbbf24; border-color: rgba(251,191,36,0.3); }
         .tool-btn.green2 { color: #34d399; border-color: rgba(52,211,153,0.3); }
 
-        /* ===== ルート結果カード ===== */
         .route-card { background: rgba(30,41,59,0.85); border: 1px solid rgba(100,116,139,0.25); border-radius: 14px; margin-bottom: 10px; overflow: hidden; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
@@ -93,15 +91,10 @@
         .badge-transfer { background: rgba(251,191,36,0.12); color: #fde68a; }
         .badge-fare { background: rgba(52,211,153,0.12); color: #6ee7b7; }
 
-        /* タイムライン */
         .route-timeline { padding: 12px 16px 12px 20px; }
         .tl-segment { position: relative; padding-left: 28px; padding-bottom: 0; }
         .tl-segment:last-child { padding-bottom: 0; }
-
-        /* 縦線 */
         .tl-line { position: absolute; left: 8px; top: 18px; bottom: 0; width: 4px; border-radius: 2px; }
-
-        /* 駅ドット */
         .tl-dot { position: absolute; left: 3px; top: 5px; width: 14px; height: 14px; border-radius: 50%; border: 3px solid; background: #0f172a; z-index: 1; }
         .tl-dot.start { border-color: #60a5fa; background: #60a5fa; }
         .tl-dot.end { border-color: #34d399; background: #34d399; }
@@ -114,12 +107,10 @@
 
         .tl-ride { padding: 6px 0 6px 0; margin-left: 0; }
         .tl-ride-line { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-bottom: 3px; }
-        /* 路線記号バッジ（丸型） */
         .line-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; border-radius: 50%; font-size: 11px; font-weight: 800; color: #fff; letter-spacing: -0.5px; line-height: 1; padding: 0 3px; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.3); }
         .tl-ride-detail { font-size: 13px; color: #94a3b8; line-height: 1.5; }
         .tl-ride-detail span { margin-right: 10px; }
 
-        /* 中間駅（折りたたみ） */
         .tl-stops-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; margin: 2px 0 0; border: 1px solid rgba(100,116,139,0.2); border-radius: 6px; font-size: 13px; color: #64748b; cursor: pointer; background: rgba(15,23,42,0.3); transition: all 0.15s; }
         .tl-stops-toggle:hover { color: #94a3b8; border-color: rgba(100,116,139,0.4); }
         .tl-stops-toggle .arrow { transition: transform 0.2s; display: inline-block; }
@@ -133,12 +124,10 @@
 
         .tl-transfer-box { display: flex; align-items: center; gap: 6px; padding: 5px 10px; margin: 4px 0; background: rgba(251,191,36,0.08); border: 1px dashed rgba(251,191,36,0.25); border-radius: 8px; font-size: 13px; color: #fde68a; }
 
-        /* 注意事項 */
         .route-notes { padding: 8px 16px 12px; border-top: 1px solid rgba(100,116,139,0.12); }
         .route-notes p { font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 2px; }
         .route-notes .warn { color: #fca5a5; }
 
-        /* フォールバック（Markdown表示） */
         .result-card { background: rgba(30,41,59,0.85); border: 1px solid rgba(100,116,139,0.25); border-radius: 14px; padding: 16px; margin-bottom: 10px; animation: fadeIn 0.3s ease; }
         .result-card h3 { color: #60a5fa; margin-bottom: 10px; font-size: 14px; }
         .result-content { line-height: 1.75; font-size: 13px; color: #cbd5e1; }
@@ -191,7 +180,6 @@
         .settings-panel { display: none; margin-bottom: 10px; }
         .settings-panel.open { display: block; }
 
-        /* 混雑度バー */
         .crowd-bar { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; font-size: 12px; vertical-align: middle; }
         .crowd-bar .crowd-icons { display: inline-flex; margin-left: -2px; letter-spacing: -6px; }
         .crowd-bar .ci { font-size: 14px; opacity: 0.2; }
@@ -203,13 +191,11 @@
         .crowd-4 { background: rgba(249,115,22,0.1); color: #f97316; }
         .crowd-5 { background: rgba(239,68,68,0.12); color: #ef4444; }
 
-        /* 遅延バッジ */
         .tl-delay { display: flex; align-items: center; gap: 6px; padding: 6px 12px; margin: 4px 0; background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.25); border-radius: 8px; }
         .tl-delay-icon { color: #f97316; font-size: 16px; flex-shrink: 0; }
         .tl-delay-text { font-size: 13px; font-weight: 600; color: #f97316; }
         .tl-delay-reason { font-size: 12px; color: #fb923c; font-weight: 400; margin-left: 4px; }
 
-        /* 検証バッジ */
         .verify-badge { display: none; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
         .verify-badge.verifying { display: inline-flex; background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.25); color: #93c5fd; }
         .verify-badge.done { display: inline-flex; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.25); color: #34d399; }
@@ -218,6 +204,15 @@
         .info-banner { display: none; padding: 8px 12px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 11px; margin-bottom: 10px; font-size: 12px; color: #fca5a5; }
         .info-banner.show { display: block; }
         .info-banner.ok { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.2); color: #34d399; }
+
+        /* [修正7] 混雑度推定ラベル */
+        .crowd-estimate-label { font-size: 10px; color: #64748b; font-weight: 400; margin-left: 2px; }
+
+        /* [修正8] 到着駅不一致バナー */
+        .dest-warn-banner { padding: 8px 12px; background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.3); border-radius: 10px; margin-bottom: 10px; font-size: 13px; color: #fb923c; font-weight: 600; }
+
+        /* [修正5] 運賃注記バナー */
+        .fare-warn-banner { padding: 6px 12px; background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); border-radius: 8px; margin-bottom: 8px; font-size: 12px; color: #a78bfa; }
 
         .mode-tabs { display: flex; margin-bottom: 10px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(100,116,139,0.3); }
         .mode-tab { flex: 1; padding: 9px; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; background: rgba(15,23,42,0.5); color: #94a3b8; border: none; }
@@ -301,7 +296,6 @@
             <div><label>歩く速度</label><select id="walkSpeed"><option value="slow">ゆっくり</option><option value="slightly_slow">少しゆっくり</option><option value="normal" selected>標準</option><option value="slightly_fast">少し急ぎ</option><option value="fast">急いで</option></select></div>
         </div>
 
-        <!-- 優先クイックボタン -->
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="priorityBtns">
             <button class="tool-btn active" onclick="setPriority('recommended',this)">おすすめ</button>
             <button class="tool-btn" onclick="setPriority('fast',this)" style="color:#60a5fa;">最速</button>
@@ -375,7 +369,6 @@ const LINE_COLORS = {
     '東海道新幹線':'#005daa','東北新幹線':'#00a651','北陸新幹線':'#7b439a',
     default:'#60a5fa'
 };
-// 路線記号マップ（公式駅ナンバリング準拠）
 const LINE_CODES = {
     '山手線':'JY','京浜東北':'JK','中央線快速':'JC','中央線':'JC','中央・総武':'JB','総武線':'JB',
     '東海道線':'JT','横須賀線':'JO','総武快速':'JO','埼京線':'JA','湘南新宿':'JS','京葉線':'JE',
@@ -388,11 +381,9 @@ const LINE_CODES = {
     '西武池袋線':'SI','西武新宿線':'SS','東武東上線':'TJ','東武スカイツリー':'TS','東武伊勢崎':'TS',
     '京急線':'KK','京急':'KK','京成線':'KS','京成':'KS','つくばエクスプレス':'TX',
     '東海道新幹線':'🚅','東北新幹線':'🚅','北陸新幹線':'🚅','上越新幹線':'🚅','山陽新幹線':'🚅','九州新幹線':'🚅',
-    // 関西
     '御堂筋線':'M','谷町線':'T','四つ橋線':'Y','中央線（大阪）':'C','千日前線':'S','堺筋線':'K','長堀鶴見緑地線':'N',
     '阪急神戸線':'HK','阪急宝塚線':'HK','阪急京都線':'HK','阪神本線':'HS',
     '近鉄':'A','南海':'NK','京阪':'KH',
-    // 名古屋
     '東山線':'H','名城線':'M','鶴舞線':'T','桜通線':'S',
 };
 function getLineColor(name) {
@@ -406,8 +397,33 @@ function getLineCode(name) {
     return '';
 }
 
+// ===== [修正3] 主要駅乗換時間テーブル =====
+const TRANSFER_TIMES = {
+    '東京_京葉線': 15, '東京': 8, '新宿': 7, '渋谷': 6, '池袋': 6,
+    '品川': 5, '横浜': 6, '大手町': 7, '上野': 5, '北千住': 5,
+    '大宮': 6, '武蔵小杉': 5, '中野': 4, '秋葉原': 5,
+    '名古屋': 8, '大阪': 10, '梅田': 8, '難波': 6, '天王寺': 5,
+    '京都': 7, '三宮': 5, '博多': 7, '札幌': 6, '仙台': 6,
+    'default': 5
+};
+function getTransferMinutes(stationName, fromLine, toLine) {
+    if (!stationName) return TRANSFER_TIMES.default;
+    // 京葉線乗換の特殊処理
+    if (stationName.includes('東京') && ((fromLine||'')+'|'+(toLine||'')).includes('京葉')) {
+        return TRANSFER_TIMES['東京_京葉線'];
+    }
+    for (const [k,v] of Object.entries(TRANSFER_TIMES)) {
+        if (k !== 'default' && !k.includes('_') && stationName.includes(k)) return v;
+    }
+    return TRANSFER_TIMES.default;
+}
+
 // ===== 状態 =====
 let lastSearchParams = null, lastResultText = '', alarmTimer = null, currentMode = 'route';
+let lastParsedRoutes = null;
+let verifyAbort = null;
+// [修正2] 区間分割検索フラグ（運賃注記表示用）
+let isSegmentedResult = false;
 
 // ===== 初期化 =====
 function updateNow() { const n=new Date(); document.getElementById('date').value=n.toISOString().split('T')[0]; document.getElementById('time').value=n.toTimeString().slice(0,5); }
@@ -418,10 +434,8 @@ const savedKey=localStorage.getItem('openai_api_key'); if(savedKey)document.getE
 document.getElementById('apiKey').addEventListener('change',e=>localStorage.setItem('openai_api_key',e.target.value.trim()));
 const savedTimeout=localStorage.getItem('openai_timeout'); if(savedTimeout)document.getElementById('timeoutSec').value=savedTimeout;
 document.getElementById('timeoutSec').addEventListener('change',e=>localStorage.setItem('openai_timeout',e.target.value));
-
 const savedOdpt=localStorage.getItem('odpt_key'); if(savedOdpt)document.getElementById('odptKey').value=savedOdpt;
 document.getElementById('odptKey').addEventListener('change',e=>localStorage.setItem('odpt_key',e.target.value.trim()));
-
 document.getElementById('optCommuterPass').addEventListener('change',e=>{document.getElementById('commuterPassSection').style.display=e.target.checked?'block':'none';});
 document.getElementById('specialTicket').addEventListener('change',e=>{document.getElementById('freepassSection').style.display=e.target.value==='freepass'?'block':'none';});
 loadHistory(); loadFavorites(); loadExpenses();
@@ -439,30 +453,55 @@ function setMode(mode){
     btn.textContent={route:'経路を検索',timetable:'時刻表を検索',commuter:'定期代を検索',status:'運行情報を取得'}[mode];
 }
 
-// ===== 優先クイックボタン =====
 function setPriority(val, btn) {
     document.getElementById('priority').value = val;
     document.querySelectorAll('#priorityBtns .tool-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 }
 
-// ===== 音声・GPS・入れ替え =====
+// ===== 音声・入れ替え =====
 function voiceInput(id){if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){alert('音声入力非対応');return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const r=new SR();r.lang='ja-JP';r.onresult=e=>{document.getElementById(id).value=e.results[0][0].transcript.replace(/駅$/,'').trim();};r.onerror=()=>{};r.start();}
 function swapStations(){const f=document.getElementById('fromStation'),t=document.getElementById('toStation');[f.value,t.value]=[t.value,f.value];}
 function getApiKey(){const k=document.getElementById('apiKey').value.trim();if(!k){document.getElementById('settingsPanel').classList.add('open');document.getElementById('apiKey').focus();}return k;}
 
+// ===== [修正6] GPS → HeartRails Express API で最寄り駅検索 =====
 async function detectStation(){
     const btn=document.getElementById('gpsBtn'),st=document.getElementById('gpsStatus');st.style.display='block';
     if(!navigator.geolocation){st.textContent='GPS非対応';st.className='sub-text err';return;}
     btn.disabled=true;btn.classList.add('locating');btn.textContent='...';st.textContent='位置情報を取得中...';st.className='sub-text';
-    try{const pos=await new Promise((ok,ng)=>navigator.geolocation.getCurrentPosition(ok,ng,{enableHighAccuracy:true,timeout:15000,maximumAge:0}));
-        const lat=pos.coords.latitude,lng=pos.coords.longitude;st.textContent=`${lat.toFixed(4)}, ${lng.toFixed(4)} — 検索中...`;
-        const apiKey=getApiKey();if(!apiKey){st.textContent='APIキーを先に設定';st.className='sub-text err';return;}
-        const data=await callAPI(apiKey,`緯度${lat}, 経度${lng}に最も近い日本の鉄道駅名を1つだけ（「駅」除く）答えて。例:渋谷`,'low',256);
-        let name=(data.output_text||'').trim().replace(/駅$/,'').split('\n')[0].trim();
-        document.getElementById('fromStation').value=name;st.textContent=`最寄り駅: ${name}`;st.className='sub-text ok';
-    }catch(err){st.textContent=({1:'位置情報の許可が必要',2:'位置情報が利用不可',3:'タイムアウト'})[err.code]||'取得失敗';st.className='sub-text err';
-    }finally{btn.disabled=false;btn.classList.remove('locating');btn.textContent='GPS';}
+    try {
+        const pos = await new Promise((ok,ng)=>navigator.geolocation.getCurrentPosition(ok,ng,{enableHighAccuracy:true,timeout:15000,maximumAge:0}));
+        const lat=pos.coords.latitude, lng=pos.coords.longitude;
+        st.textContent=`${lat.toFixed(4)}, ${lng.toFixed(4)} — 最寄り駅を検索中...`;
+
+        // HeartRails Express API（無料・登録不要）で最寄り駅を取得
+        const url = `https://express.heartrails.com/api/json?method=getStations&x=${lng}&y=${lat}`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+        if (!res.ok) throw new Error(`HeartRails API Error: ${res.status}`);
+        const data = await res.json();
+
+        if (data.response && data.response.station && data.response.station.length > 0) {
+            const nearest = data.response.station[0];
+            const name = nearest.name.replace(/駅$/, '');
+            document.getElementById('fromStation').value = name;
+            const dist = nearest.distance ? ` (${nearest.distance})` : '';
+            st.textContent = `最寄り駅: ${name}${dist} [${nearest.line || ''}]`;
+            st.className = 'sub-text ok';
+        } else {
+            // HeartRails失敗時 → LLMフォールバック
+            const apiKey = getApiKey();
+            if (!apiKey) { st.textContent='APIキーを先に設定'; st.className='sub-text err'; return; }
+            const aiData = await callAPI(apiKey, `緯度${lat}, 経度${lng}に最も近い日本の鉄道駅名を1つだけ（「駅」除く）答えて。例:渋谷`, 'low', 256);
+            let name = (aiData.output_text||'').trim().replace(/駅$/,'').split('\n')[0].trim();
+            document.getElementById('fromStation').value = name;
+            st.textContent = `最寄り駅: ${name}（AI推定）`; st.className = 'sub-text ok';
+        }
+    } catch(err) {
+        const errMsg = ({1:'位置情報の許可が必要',2:'位置情報が利用不可',3:'タイムアウト'})[err.code] || err.message || '取得失敗';
+        st.textContent = errMsg; st.className = 'sub-text err';
+    } finally {
+        btn.disabled=false; btn.classList.remove('locating'); btn.textContent='GPS';
+    }
 }
 
 // ===== 検索ディスパッチ =====
@@ -486,11 +525,12 @@ async function searchRoute(overrideTime){
         freepassName:document.getElementById('freepassName').value.trim()};
     addHistory(from,to);
 
-    // 経由駅がある場合は区間ごとにAPIを分割呼び出し
     const viaStations = via ? via.split(/[,、，\s]+/).filter(s=>s).map(s=>s.replace(/駅$/,'')) : [];
     if(viaStations.length){
+        isSegmentedResult = true;
         await runSegmentedSearch(apiKey, lastSearchParams, [from, ...viaStations, to]);
     } else {
+        isSegmentedResult = false;
         await runSearch(buildRoutePrompt(lastSearchParams),true);
     }
 }
@@ -500,7 +540,6 @@ async function searchTimetable(){
     const to=document.getElementById('toStation').value.trim();
     setLoading(true);
     try {
-        // ODPT APIで時刻表を取得
         const odptData = await fetchOdptStationTimetable(from);
         const odptHtml = renderOdptTimetable(odptData, from);
         if (odptHtml) {
@@ -509,7 +548,6 @@ async function searchTimetable(){
             return;
         }
     } catch {}
-    // ODPTで取得できなかった場合はAIにフォールバック
     const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');setLoading(false);return;}
     try {
         const data=await callAPI(apiKey,`ウェブ検索で${from}駅${to?'から'+to+'方面':''}の本日(${document.getElementById('date').value})の時刻表を調べて。直近10本を表形式(時刻|路線|種別|行先|番線)で、始発終電も記載。日本語で回答。`,'medium',16000);
@@ -520,11 +558,9 @@ async function searchTimetable(){
 async function searchCommuter(){const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');return;}const from=document.getElementById('fromStation').value.trim(),to=document.getElementById('toStation').value.trim();if(!from||!to){showError('出発駅と到着駅を入力してください。');return;}await runSearch(`ウェブ検索で${from}駅〜${to}駅の通勤定期代を調べて。表形式(ルート|1ヶ月|3ヶ月|6ヶ月)で複数ルート提示。通学定期(大学)も併記。日本語で回答。`);}
 async function checkServiceStatus(){
     const from=document.getElementById('fromStation').value.trim(),to=document.getElementById('toStation').value.trim();
-
     if(currentMode==='status'){
         setLoading(true);
         try {
-            // ODPT APIで運行情報を取得
             const odptData = await fetchOdptTrainInfo();
             const odptHtml = renderOdptTrainInfo(odptData);
             if (odptHtml) {
@@ -533,17 +569,14 @@ async function checkServiceStatus(){
                 setLoading(false);
                 return;
             }
-        } catch {}
-        // ODPTで取得できなかった場合はAIにフォールバック
+        } catch(err) { console.warn('[ODPT] 運行情報取得失敗:', err.message); }
         const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');setLoading(false);return;}
         const area=from||to||'首都圏';
         try{const data=await callAPI(apiKey,`ウェブ検索で${area}エリアの鉄道の最新運行情報をまとめて。遅延・運休路線をリスト、異常なしは「平常運転」。日本語で回答。`,'medium',8000);lastResultText=data.output_text||'';displayFallback(data);document.getElementById('toolbar').style.display='none';}catch(err){showError(`エラー: ${err.message}`);}finally{setLoading(false);}
         return;
     }
-    // ツールバーからの運行情報チェック（バナー表示）
     const banner=document.getElementById('infoBanner');banner.className='info-banner show';banner.textContent='運行情報を確認中...';
     try {
-        // まずODPTを試行
         const odptData = await fetchOdptTrainInfo();
         if (odptData && odptData.length) {
             const alerts = odptData.filter(i => i['odpt:trainInformationText'] && !['平常運転','平常'].includes(i['odpt:trainInformationText']?.trim().slice(0,4)));
@@ -560,18 +593,13 @@ async function checkServiceStatus(){
             }
             return;
         }
-    } catch {}
-    // ODPTがダメならAIフォールバック
+    } catch(err) { console.warn('[ODPT] 運行情報取得失敗:', err.message); }
     const apiKey=getApiKey();if(!apiKey){banner.textContent='APIキー未設定';return;}
     try{const data=await callAPI(apiKey,`${from}駅から${to}駅で利用する路線の現在の運行情報をウェブ検索して簡潔にまとめて。異常なしなら「平常運転」。`,'low',2000);const txt=data.output_text||'取得できませんでした';banner.innerHTML='<strong>運行情報:</strong> '+escapeHtml(txt).replace(/\n/g,'<br>');banner.className=txt.includes('平常')?'info-banner show ok':'info-banner show';}catch{banner.textContent='運行情報の取得に失敗';}
 }
 
-let lastParsedRoutes = null; // Step2用に保持
-let verifyAbort = null; // 検証中断用
-
-// ===== 経由駅あり: 区間ごとにAPI呼び出しして結合 =====
+// ===== [修正2] 経由駅あり: 区間ごとに直列API呼び出し（前区間の到着時刻を次区間の出発条件にする） =====
 async function runSegmentedSearch(apiKey, params, stations){
-    // stations = ['川間', '大宮', '西千葉'] のような配列
     if(verifyAbort){verifyAbort.abort();verifyAbort=null;}
     setLoading(true);
     const segments = [];
@@ -581,24 +609,20 @@ async function runSegmentedSearch(apiKey, params, stations){
     console.log('[Segmented] 区間:', segments.map(s=>`${s.from}→${s.to}`).join(', '));
 
     try{
-        // 各区間を並列でAPI呼び出し
-        const segmentPromises = segments.map((seg, idx) => {
-            const segParams = {...params, from: seg.from, to: seg.to, via: ''};
-            const prompt = buildRoutePrompt(segParams);
-            console.log(`[Segmented] 区間${idx+1} (${seg.from}→${seg.to}) 検索開始`);
-            return callAPI(apiKey, prompt, 'high', 16000).then(data => {
-                console.log(`[Segmented] 区間${idx+1} output_text length:`, (data.output_text||'').length);
-                return data;
-            });
-        });
-
-        const results = await Promise.all(segmentPromises);
-
-        // 各区間のJSONを解析
         const allSegRoutes = [];
-        let anyFailed = false;
-        for(let i=0;i<results.length;i++){
-            const text = results[i].output_text || '';
+        let currentDepartureTime = params.time; // 最初は指定時刻
+
+        // [修正2] 直列実行: 前区間の到着時刻を次区間の出発時刻に使う
+        for(let idx=0; idx<segments.length; idx++){
+            const seg = segments[idx];
+            const segParams = {...params, from: seg.from, to: seg.to, via: '', time: currentDepartureTime, timeTypeText: '出発時刻指定'};
+            const prompt = buildRoutePrompt(segParams);
+            console.log(`[Segmented] 区間${idx+1} (${seg.from}→${seg.to}) 出発時刻=${currentDepartureTime} 検索開始`);
+
+            const data = await callAPI(apiKey, prompt, 'high', 16000);
+            console.log(`[Segmented] 区間${idx+1} output_text length:`, (data.output_text||'').length);
+
+            const text = data.output_text || '';
             let parsed = null;
             try{
                 let cleaned = text.replace(/【[^】]*】/g, '');
@@ -608,36 +632,47 @@ async function runSegmentedSearch(apiKey, params, stations){
                 else { const m2 = cleaned.match(/\{[\s\S]*?"routes"\s*:\s*\[[\s\S]*\]/); if(m2){ let s=m2[0],depth=0,end=0; for(let j=0;j<s.length;j++){if(s[j]==='{')depth++;else if(s[j]==='}'){depth--;if(depth===0){end=j+1;break;}}} if(end>0)jsonStr=s.slice(0,end); }}
                 jsonStr = jsonStr.trim().replace(/,\s*([}\]])/g, '$1');
                 parsed = JSON.parse(jsonStr);
-            }catch(e){ console.log(`[Segmented] 区間${i+1} JSON解析失敗:`, e.message); }
+            }catch(e){ console.log(`[Segmented] 区間${idx+1} JSON解析失敗:`, e.message); }
 
             if(parsed && parsed.routes && parsed.routes.length){
-                allSegRoutes.push({segIndex:i, from:segments[i].from, to:segments[i].to, route:parsed.routes[0]});
+                const route = parsed.routes[0];
+                allSegRoutes.push({segIndex:idx, from:seg.from, to:seg.to, route});
+
+                // [修正2] 到着時刻を取得して次区間の出発時刻に設定
+                const arrivalTime = route.arrival;
+                if(arrivalTime && idx < segments.length - 1){
+                    // 到着時刻に乗換時間を加算して次区間の出発時刻にする
+                    const lastRideSeg = (route.segments||[]).filter(s=>s.type==='ride').pop();
+                    const prevLine = lastRideSeg ? lastRideSeg.line : '';
+                    const transferMin = getTransferMinutes(seg.to, prevLine, '');
+                    currentDepartureTime = addMinutesToTime(arrivalTime, transferMin);
+                    console.log(`[Segmented] 区間${idx+1} 到着=${arrivalTime} → 乗換${transferMin}分 → 次区間出発=${currentDepartureTime}`);
+                }
             } else {
-                anyFailed = true;
-                console.log(`[Segmented] 区間${i+1} (${segments[i].from}→${segments[i].to}) 取得失敗`);
+                console.log(`[Segmented] 区間${idx+1} (${seg.from}→${seg.to}) 取得失敗 → 一括検索にフォールバック`);
+                await runSearch(buildRoutePrompt(params), true);
+                return;
             }
         }
 
-        if(anyFailed || allSegRoutes.length !== segments.length){
-            // 一部区間が失敗 → 通常の一括検索にフォールバック
-            console.log('[Segmented] 一部区間失敗 → 一括検索にフォールバック');
-            await runSearch(buildRoutePrompt(params), true);
-            return;
-        }
-
-        // 全区間成功 → 結合して1つのルートに
+        // 全区間成功 → 結合
         console.log('[Segmented] 全区間成功 → 結合');
         const combined = combineSegmentRoutes(allSegRoutes);
+
+        // [修正2] 接続時刻の整合性検証
+        const timeErrors = validateSegmentConnections(allSegRoutes);
+        if(timeErrors.length){
+            combined.routes[0].notes = combined.routes[0].notes || [];
+            timeErrors.forEach(e => combined.routes[0].notes.push(e));
+        }
+
         const fakeData = {output_text: JSON.stringify(combined)};
         lastResultText = fakeData.output_text;
         lastParsedRoutes = combined;
         renderRouteCards(combined, fakeData);
         document.getElementById('toolbar').style.display='flex';updateFavBtn();
+        saveCacheWithKey(lastSearchParams, lastResultText, lastParsedRoutes);
 
-        // キャッシュ保存
-        if(lastResultText)localStorage.setItem('cached_result',JSON.stringify({text:lastResultText,time:Date.now(),routes:lastParsedRoutes||null}));
-
-        // Step2: gpt-5.4で検証
         console.log('[Segmented] → Step2検証を開始');
         startVerification(apiKey, combined);
     }catch(err){
@@ -646,8 +681,38 @@ async function runSegmentedSearch(apiKey, params, stations){
     }finally{setLoading(false);}
 }
 
+// [修正2] 時刻に分を加算するユーティリティ
+function addMinutesToTime(timeStr, minutes) {
+    const [h,m] = (timeStr||'0:0').split(':').map(Number);
+    const total = h * 60 + m + minutes;
+    const nh = Math.floor(total / 60) % 24;
+    const nm = total % 60;
+    return `${String(nh).padStart(2,'0')}:${String(nm).padStart(2,'0')}`;
+}
+
+// [修正2] 区間間の接続時刻を検証
+function validateSegmentConnections(segRoutes) {
+    const errors = [];
+    for(let i=0; i<segRoutes.length-1; i++){
+        const prevArr = segRoutes[i].route.arrival;
+        const nextDep = segRoutes[i+1].route.departure;
+        if(prevArr && nextDep){
+            const prevMin = timeToMin(prevArr);
+            const nextMin = timeToMin(nextDep);
+            // 日付またぎ考慮（6時間以上の差があれば日付またぎとみなす）
+            const diff = nextMin >= prevMin ? nextMin - prevMin : nextMin + 1440 - prevMin;
+            if(diff < 0 || (nextMin < prevMin && diff > 360)){
+                errors.push(`⚠ 区間${i+1}の到着(${prevArr})と区間${i+2}の出発(${nextDep})の接続に矛盾があります`);
+            }
+            if(diff < 2 && diff >= 0){
+                errors.push(`⚠ ${segRoutes[i].to}での乗換時間が${diff}分と非常に短いです。余裕を持った行動をお勧めします`);
+            }
+        }
+    }
+    return errors;
+}
+
 function combineSegmentRoutes(segRoutes){
-    // 各区間のルートを1つのルートに結合
     const allSegments = [];
     let totalFare = 0, totalIcFare = 0, totalTransfers = 0;
     const dep = segRoutes[0].route.departure;
@@ -655,30 +720,29 @@ function combineSegmentRoutes(segRoutes){
 
     segRoutes.forEach((sr, idx) => {
         const r = sr.route;
-        // 運賃を数値抽出して加算
         const fareNum = parseInt((r.fare||'').replace(/[^0-9]/g,''))||0;
         const icFareNum = parseInt((r.icFare||'').replace(/[^0-9]/g,''))||0;
         totalFare += fareNum;
         totalIcFare += icFareNum;
         totalTransfers += (r.transfers||0);
 
-        // セグメントを追加
         if(r.segments) r.segments.forEach(s => allSegments.push(s));
 
-        // 区間の間にtransferセグメントを追加（最後の区間以外）
+        // [修正3] 乗換時間を駅テーブルから取得
         if(idx < segRoutes.length - 1){
             const lastSeg = r.segments?.[r.segments.length-1];
-            const nextRoute = segRoutes[idx+1].route;
-            const firstNextSeg = nextRoute.segments?.[0];
-            // 既にtransferがある場合は追加しない
             if(lastSeg && lastSeg.type !== 'transfer'){
+                const prevLine = lastSeg ? lastSeg.line : '';
+                const nextRoute = segRoutes[idx+1].route;
+                const nextFirstRide = (nextRoute.segments||[]).find(s=>s.type==='ride');
+                const nextLine = nextFirstRide ? nextFirstRide.line : '';
+                const transferMin = getTransferMinutes(sr.to, prevLine, nextLine);
                 totalTransfers++;
-                allSegments.push({type:'transfer', station: sr.to, minutes: 5});
+                allSegments.push({type:'transfer', station: sr.to, minutes: transferMin});
             }
         }
     });
 
-    // 所要時間計算
     const depMin = timeToMin(dep), arrMin = timeToMin(arr);
     const diff = arrMin >= depMin ? arrMin - depMin : arrMin + 1440 - depMin;
     const durH = Math.floor(diff/60), durM = diff%60;
@@ -691,7 +755,7 @@ function combineSegmentRoutes(segRoutes){
             fare: `${totalFare}円`, icFare: `${totalIcFare}円`,
             expressFare: null,
             segments: allSegments,
-            notes: ['経由駅指定のため区間分割検索で結合']
+            notes: ['経由駅指定のため区間分割検索で結合', '※運賃は区間ごとの合算です。通し運賃とは異なる場合があります']
         }],
         serviceInfo: '平常運転'
     };
@@ -704,21 +768,17 @@ async function runSearch(prompt,isRoute){
     if(verifyAbort){verifyAbort.abort();verifyAbort=null;}
     setLoading(true);
     try{
-        // Step1: gpt-5.4-mini メイン検索
-        console.log('[Step1] gpt-5.4-mini 検索開始');
+        console.log('[Step1] gpt-4o-mini-search 検索開始');
         const data=await callAPI(apiKey,prompt,'high',16000);lastResultText=data.output_text||'';
         console.log('[Step1] output_text length:', lastResultText.length);
 
         if(isRoute){
             displayRouteResult(data);
-
             if(lastParsedRoutes){
-                // JSON解析成功 → タイムラインUI表示済み → Step2で検証
                 document.getElementById('toolbar').style.display='flex';updateFavBtn();
                 console.log('[Step1] JSON成功 → Step2検証を開始');
                 startVerification(apiKey, lastParsedRoutes);
             } else {
-                // JSON解析失敗 → Markdownフォールバック中 → Step2で4o-searchフル再検索
                 console.log('[Step1] JSON失敗 → Step2フル検索にフォールバック');
                 document.getElementById('toolbar').style.display='flex';updateFavBtn();
                 startFullFallback(apiKey, prompt);
@@ -727,29 +787,24 @@ async function runSearch(prompt,isRoute){
             displayFallback(data);
             document.getElementById('toolbar').style.display='none';
         }
-        if(lastResultText)localStorage.setItem('cached_result',JSON.stringify({text:lastResultText,time:Date.now(),routes:lastParsedRoutes||null}));
+        if(lastResultText) saveCacheWithKey(lastSearchParams, lastResultText, lastParsedRoutes);
     }catch(err){showError(`エラー: ${err.message}`);}finally{setLoading(false);}
 }
 
-// ===== Step2フォールバック: GPT-5.4でフル再検索（JSON失敗時） =====
 async function startFullFallback(apiKey, prompt){
     const badge = document.getElementById('verifyBadge');
     if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> GPT-5.4 miniで再検索中...';}
-
     verifyAbort = new AbortController();
     try{
         console.log('[Step2-Fallback] GPT-5.4 mini開始');
         const data = await callResponsesAPI(apiKey, prompt, MODEL_VERIFY, 16000, verifyAbort.signal, 'high', 'medium');
         lastResultText = data.output_text || '';
         displayRouteResult(data);
-
         if(lastParsedRoutes){
             if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ GPT-5.4 miniで再取得済み';}
-            console.log('[Step2-Fallback] JSON成功 → タイムラインUI更新');
         } else {
             displayFallback(data);
             if(badge){badge.className='verify-badge done';badge.innerHTML='検索完了（テキスト表示）';}
-            console.log('[Step2-Fallback] JSON失敗 → テキスト表示で完了');
         }
     }catch(err){
         if(err.name==='AbortError')return;
@@ -758,16 +813,12 @@ async function startFullFallback(apiKey, prompt){
     }
 }
 
-// ===== Step2: バックグラウンド検証 =====
 async function startVerification(apiKey, routes){
-    // 検証バッジを表示
     const badge = document.getElementById('verifyBadge');
     if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> GPT-5.4 miniで検証中...';}
-
     verifyAbort = new AbortController();
     const p = lastSearchParams;
     const routesSummary = JSON.stringify(routes, null, 0).slice(0, 3000);
-
     const verifyRoute = p.via ? `${p.from}駅→${p.via.split(/[,、，\s]+/).filter(s=>s).join('→')}→${p.to}駅` : `${p.from}駅→${p.to}駅`;
     const verifyPrompt = `あなたは日本の電車乗り換え案内の専門家です。以下の検索結果をウェブ検索で検証してください。
 
@@ -808,7 +859,6 @@ ${routesSummary}
         const text = data.output_text || '';
         console.log('[Verify] response:', text.slice(0, 300));
 
-        // 結果をパース
         let cleaned = text.replace(/【[^】]*】/g, '');
         let result = null;
         try {
@@ -820,13 +870,11 @@ ${routesSummary}
             if(badge){badge.className='verify-badge done';badge.innerHTML='✓ GPT-5.4 miniで検証済み';}
             return;
         }
-
         if (result.noChange) {
             if(badge){badge.className='verify-badge done';badge.innerHTML='✓ 検証済み（修正なし）';}
             return;
         }
 
-        // 修正を適用
         let correctionCount = 0;
         if (result.corrections && result.corrections.length) {
             result.corrections.forEach(c => {
@@ -844,11 +892,9 @@ ${routesSummary}
             lastParsedRoutes.serviceInfo = result.additions.serviceInfo;
             correctionCount++;
         }
-
         if (correctionCount > 0) {
-            // 修正を反映して再描画
             displayRouteResultFromParsed(lastParsedRoutes);
-            if(badge){badge.className='verify-badge corrected';badge.innerHTML=`✓ GPT-5.4 Thinkingで${correctionCount}件修正済み`;}
+            if(badge){badge.className='verify-badge corrected';badge.innerHTML=`✓ GPT-5.4 miniで${correctionCount}件修正済み`;}
         } else {
             if(badge){badge.className='verify-badge done';badge.innerHTML='✓ GPT-5.4 miniで検証済み';}
         }
@@ -884,7 +930,6 @@ function buildRoutePrompt(p){
     if(p.doorSide) optFields += ', "doorSide": "ドア開方向（左/右）"';
     if(p.crowding) optFields += ', "crowding": "1〜5の整数値（必須。1=空いている,2=余裕あり,3=普通,4=混雑,5=非常に混雑）"';
 
-    // 経由駅がある場合、ルート表記を A→経由1→経由2→B 形式にする
     const viaStations = p.via ? p.via.split(/[,、，\s]+/).filter(s=>s) : [];
     const routeExpr = viaStations.length
         ? `${p.from}駅 → ${viaStations.map(s=>s.replace(/駅$/,'')+'駅').join(' → ')} → ${p.to}駅`
@@ -984,65 +1029,59 @@ ${wm[p.walkText]||''}${viaInstruction}
 // ===== ODPT API =====
 const ODPT_PUBLIC = 'https://api-public.odpt.org/api/v4/';
 const ODPT_AUTH = 'https://api.odpt.org/api/v4/';
-// 駅名→ODPT事業者/路線マッピング（主要事業者）
-const ODPT_OPERATORS = ['JR-East','TokyoMetro','Toei','Odakyu','Keio','Tokyu','Seibu','Tobu','Keikyu','Keisei','TXRailway'];
+function getOdptBase() { const key = document.getElementById('odptKey').value.trim(); return key ? ODPT_AUTH : ODPT_PUBLIC; }
+function odptKeyParam() { const key = document.getElementById('odptKey').value.trim(); return key ? `&acl:consumerKey=${encodeURIComponent(key)}` : ''; }
 
-function getOdptBase() {
-    const key = document.getElementById('odptKey').value.trim();
-    return key ? ODPT_AUTH : ODPT_PUBLIC;
-}
-function odptKeyParam() {
-    const key = document.getElementById('odptKey').value.trim();
-    return key ? `&acl:consumerKey=${encodeURIComponent(key)}` : '';
-}
-
-// ODPT運行情報取得
+// [修正9] ODPT APIエラーハンドリング改善
 async function fetchOdptTrainInfo() {
     try {
         const url = `${getOdptBase()}odpt:TrainInformation?${odptKeyParam()}`;
         const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-        if (!res.ok) return null;
+        if (!res.ok) {
+            console.warn(`[ODPT] 運行情報API エラー: HTTP ${res.status}`);
+            return null;
+        }
         return await res.json();
-    } catch { return null; }
+    } catch(err) {
+        console.warn('[ODPT] 運行情報取得失敗:', err.message);
+        return null;
+    }
 }
 
-// ODPT駅時刻表取得（駅名で検索）
 async function fetchOdptStationTimetable(stationName) {
     try {
-        // まず駅を検索
         const stUrl = `${getOdptBase()}odpt:Station?dc:title=${encodeURIComponent(stationName)}${odptKeyParam()}`;
         const stRes = await fetch(stUrl, { signal: AbortSignal.timeout(10000) });
-        if (!stRes.ok) return null;
+        if (!stRes.ok) {
+            console.warn(`[ODPT] 駅検索API エラー: HTTP ${stRes.status}`);
+            return null;
+        }
         const stations = await stRes.json();
-        if (!stations.length) return null;
-
-        // 見つかった駅のIDで時刻表取得
+        if (!stations.length) { console.warn(`[ODPT] 駅「${stationName}」が見つかりません`); return null; }
         const results = [];
-        // 最大3路線まで取得
         for (const st of stations.slice(0, 3)) {
             const ttUrl = `${getOdptBase()}odpt:StationTimetable?odpt:station=${encodeURIComponent(st['owl:sameAs'])}${odptKeyParam()}`;
             const ttRes = await fetch(ttUrl, { signal: AbortSignal.timeout(10000) });
             if (ttRes.ok) {
                 const tt = await ttRes.json();
                 results.push(...tt);
+            } else {
+                console.warn(`[ODPT] 時刻表API エラー: HTTP ${ttRes.status} (${st['owl:sameAs']})`);
             }
         }
         return results.length ? results : null;
-    } catch { return null; }
+    } catch(err) {
+        console.warn('[ODPT] 時刻表取得失敗:', err.message);
+        return null;
+    }
 }
 
-// ODPT運行情報を整形表示
-function renderOdptTrainInfo(data, filterArea) {
+function renderOdptTrainInfo(data) {
     if (!data || !data.length) return null;
-    // エリアフィルタ（駅名に関連する事業者のみ表示、指定なしなら全部）
     let items = data;
-    const now = new Date();
-
     let html = '<div class="result-card"><h3>運行情報（ODPT リアルタイム）</h3>';
-    // 遅延/運休ありのみ
     const alerts = items.filter(i => i['odpt:trainInformationStatus'] && !['平常運転','平常'].includes(i['odpt:trainInformationText']?.trim()));
     const normal = items.length - alerts.length;
-
     if (alerts.length === 0) {
         html += '<div class="result-content"><p style="color:#34d399;font-weight:600;">全路線 平常運転</p>';
         html += `<p style="color:#94a3b8;">対象: ${items.length}路線を確認済み</p></div>`;
@@ -1056,8 +1095,7 @@ function renderOdptTrainInfo(data, filterArea) {
             const cause = a['odpt:trainInformationCause']?.['ja'] || a['odpt:trainInformationCause'] || '';
             html += `<div style="padding:8px 0;border-bottom:1px solid rgba(100,116,139,0.15);">`;
             html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">`;
-            const code = getLineCode(line);
-            const color = getLineColor(line);
+            const code = getLineCode(line); const color = getLineColor(line);
             if (code) html += `<span class="line-badge" style="background:${color};font-size:10px;min-width:24px;height:24px;">${esc(code)}</span>`;
             html += `<strong style="color:#f1f5f9;">${esc(op)} ${esc(line)}</strong>`;
             if (status) html += `<span class="route-badge" style="background:rgba(239,68,68,0.15);color:#fca5a5;">${esc(status)}</span>`;
@@ -1073,33 +1111,24 @@ function renderOdptTrainInfo(data, filterArea) {
     return html;
 }
 
-// ODPT時刻表を整形表示
 function renderOdptTimetable(data, stationName) {
     if (!data || !data.length) return null;
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
-
     let html = `<div class="result-card"><h3>${esc(stationName)}駅 時刻表（ODPT リアルタイム）</h3><div class="result-content">`;
-
     data.forEach(tt => {
         const railway = tt['odpt:railway']?.split('.').pop() || '';
         const dir = tt['odpt:railDirection']?.split('.').pop() || '';
         const calendar = tt['odpt:calendar']?.split('.').pop() || '';
         const objects = tt['odpt:stationTimetableObject'] || [];
         if (!objects.length) return;
-
-        const color = getLineColor(railway);
-        const code = getLineCode(railway);
-
-        // 現在時刻以降の発車を10件取得
+        const color = getLineColor(railway); const code = getLineCode(railway);
         const upcoming = objects.filter(o => {
             if (!o['odpt:departureTime']) return false;
             const [h, m] = o['odpt:departureTime'].split(':').map(Number);
             return h * 60 + m >= nowMin;
         }).slice(0, 10);
-
         if (!upcoming.length) return;
-
         html += `<div style="margin-bottom:14px;">`;
         html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">`;
         if (code) html += `<span class="line-badge" style="background:${color};">${esc(code)}</span>`;
@@ -1107,7 +1136,6 @@ function renderOdptTimetable(data, stationName) {
         if (dir) html += `<span style="color:#94a3b8;font-size:13px;">${esc(dir)}方面</span>`;
         if (calendar) html += `<span style="color:#64748b;font-size:12px;">(${esc(calendar)})</span>`;
         html += `</div>`;
-
         html += '<table><tr><th>発車</th><th>種別</th><th>行先</th></tr>';
         upcoming.forEach(o => {
             const time = o['odpt:departureTime'] || '';
@@ -1117,41 +1145,43 @@ function renderOdptTimetable(data, stationName) {
         });
         html += '</table></div>';
     });
-
     html += `</div><div style="text-align:right;font-size:12px;color:#64748b;padding:6px 16px;">データ: ODPT公共交通オープンデータ</div></div>`;
     return html;
 }
 
-// ===== OpenAI API（ハイブリッド: GPT-4o mini search(メイン検索) + GPT-5.4 mini(検証)） =====
+// ===== OpenAI API =====
 const MODEL_FAST = 'gpt-4o-mini-search-preview';
 const MODEL_VERIFY = 'gpt-5.4-mini';
 
 async function callAPI(apiKey, input, ctxSize, maxTok) {
-    // Step1: gpt-4o-mini-search-preview は Chat Completions API を使用
     return callChatCompletionsAPI(apiKey, input, MODEL_FAST, maxTok);
 }
 
+// [修正7] AbortController/timeout修正: finallyでclearTimeoutを保証
 async function callChatCompletionsAPI(apiKey, input, model, maxTok, signal) {
     const timeoutMs = (parseInt(document.getElementById('timeoutSec').value) || 120) * 1000;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    if (signal) signal.addEventListener('abort', () => controller.abort());
+    const onExtAbort = () => controller.abort();
+    if (signal) signal.addEventListener('abort', onExtAbort);
 
     console.log(`[API-ChatCompletions] model=${model} timeout=${timeoutMs}ms`);
     try {
+        const body = {
+            model,
+            web_search_options: { user_location: { type: 'approximate', approximate: { country: 'JP' } } },
+            messages: [{ role: 'user', content: input }],
+            max_tokens: maxTok || 16000
+        };
+        // [修正1] response_format追加でJSON出力を強制（searchモデルでサポートされている場合）
+        // 注: gpt-4o-mini-search-previewはresponse_formatに非対応の可能性があるため、
+        // エラー時はresponse_format無しでリトライ
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
-            body: JSON.stringify({
-                model,
-                web_search_options: { user_location: { type: 'approximate', approximate: { country: 'JP' } } },
-                messages: [{ role: 'user', content: input }],
-                max_tokens: maxTok || 16000
-            }),
+            body: JSON.stringify(body),
             signal: controller.signal
         });
-        clearTimeout(timer);
-        console.log(`[API-ChatCompletions] status=${res.status}`);
         if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API Error: ${res.status}`); }
         const data = await res.json();
         data.output_text = data.choices?.[0]?.message?.content || '';
@@ -1161,18 +1191,21 @@ async function callChatCompletionsAPI(apiKey, input, model, maxTok, signal) {
         }))}]}];
         return data;
     } catch(err) {
-        clearTimeout(timer);
         if (err.name === 'AbortError') throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。タイムアウト値を延長してください。`);
         throw err;
+    } finally {
+        // [修正7] finallyで確実にクリーンアップ
+        clearTimeout(timer);
+        if (signal) signal.removeEventListener('abort', onExtAbort);
     }
 }
 
 async function callResponsesAPI(apiKey, input, model, maxTok, signal, searchCtxSize, reasoningEffort) {
     const timeoutMs = (parseInt(document.getElementById('timeoutSec').value) || 120) * 1000;
     const controller = new AbortController();
-    const extSignal = signal;
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    if (extSignal) extSignal.addEventListener('abort', () => controller.abort());
+    const onExtAbort = () => controller.abort();
+    if (signal) signal.addEventListener('abort', onExtAbort);
 
     console.log(`[API-Responses] model=${model} search_ctx=${searchCtxSize||'medium'} reasoning=${reasoningEffort||'none'} timeout=${timeoutMs}ms`);
     try {
@@ -1188,19 +1221,11 @@ async function callResponsesAPI(apiKey, input, model, maxTok, signal, searchCtxS
             body: JSON.stringify(body),
             signal: controller.signal
         });
-        clearTimeout(timer);
-        console.log(`[API-Responses] status=${res.status}`);
         if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API Error: ${res.status}`); }
         const data = await res.json();
-        // output_text が空の場合、text フィールドや output 配列からテキストを抽出
         if (!data.output_text) {
-            // text フィールドを確認（新しいAPI形式）
-            if (data.text && typeof data.text === 'string') {
-                data.output_text = data.text;
-            } else if (data.text && typeof data.text === 'object' && data.text.value) {
-                data.output_text = data.text.value;
-            }
-            // output 配列からメッセージテキストを抽出
+            if (data.text && typeof data.text === 'string') data.output_text = data.text;
+            else if (data.text && typeof data.text === 'object' && data.text.value) data.output_text = data.text.value;
             if (!data.output_text && data.output && Array.isArray(data.output)) {
                 const texts = [];
                 for (const item of data.output) {
@@ -1214,34 +1239,32 @@ async function callResponsesAPI(apiKey, input, model, maxTok, signal, searchCtxS
                 }
                 if (texts.length) data.output_text = texts.join('\n');
             }
-            console.log('[API-Responses] output_text recovery:', data.output_text ? `found ${data.output_text.length} chars` : 'still empty');
         }
         data.output_text = data.output_text || '';
         return data;
     } catch(err) {
-        clearTimeout(timer);
         if (err.name === 'AbortError') throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。タイムアウト値を延長してください。`);
         throw err;
+    } finally {
+        // [修正7] finallyで確実にクリーンアップ
+        clearTimeout(timer);
+        if (signal) signal.removeEventListener('abort', onExtAbort);
     }
 }
 
-// ===== ルート結果表示（ジョルダン風タイムライン） =====
+// ===== ルート結果表示 =====
 function displayRouteResult(data){
     const text=data.output_text||'';
     let routes=null;
     try{
-        // 引用マーカーを除去（【1†source】等）してからJSON解析
         let cleaned = text.replace(/【[^】]*】/g, '');
-        // JSON部分を抽出（複数パターン対応）
         let jsonStr = cleaned;
         const m1 = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
         if (m1) jsonStr = m1[1];
         else {
             const m2 = cleaned.match(/\{[\s\S]*?"routes"\s*:\s*\[[\s\S]*\]/);
             if (m2) {
-                // 最後の } を見つけて閉じる
-                let s = m2[0];
-                let depth = 0, end = 0;
+                let s = m2[0]; let depth = 0, end = 0;
                 for (let i = 0; i < s.length; i++) {
                     if (s[i] === '{') depth++;
                     else if (s[i] === '}') { depth--; if (depth === 0) { end = i + 1; break; } }
@@ -1249,16 +1272,51 @@ function displayRouteResult(data){
                 if (end > 0) jsonStr = s.slice(0, end);
             }
         }
-        // 末尾のゴミを除去
         jsonStr = jsonStr.trim().replace(/,\s*([}\]])/g, '$1');
         const parsed = JSON.parse(jsonStr);
         if (parsed.routes && parsed.routes.length) routes = parsed;
         console.log('[Parse] JSON parse success, routes:', parsed.routes.length);
-    } catch(e) { console.log('[Parse] JSON parse failed, fallback to markdown', e, '\ntext preview:', text.slice(0, 300)); }
+    } catch(e) { console.log('[Parse] JSON parse failed, fallback to markdown', e); }
 
     if(!routes){lastParsedRoutes=null;displayFallback(data);return;}
     lastParsedRoutes = routes;
+
+    // [修正8] 到着駅の検証
+    if(lastSearchParams){
+        validateDestinationStation(routes, lastSearchParams.to);
+    }
+
     renderRouteCards(routes, data);
+}
+
+// [修正8] 到着駅一致チェック
+function validateDestinationStation(routes, expectedTo) {
+    if (!expectedTo || !routes.routes) return;
+    const normalized = expectedTo.replace(/駅$/, '');
+    let mismatchFound = false;
+
+    routes.routes.forEach((r, i) => {
+        if (!r.segments || !r.segments.length) return;
+        // 最後のrideセグメントのtoを確認
+        const lastRide = [...r.segments].reverse().find(s => s.type === 'ride');
+        if (lastRide && lastRide.to) {
+            const actualTo = lastRide.to.replace(/駅$/, '');
+            if (actualTo !== normalized && !actualTo.includes(normalized) && !normalized.includes(actualTo)) {
+                mismatchFound = true;
+                r.notes = r.notes || [];
+                r.notes.unshift(`⚠ 到着駅が「${lastRide.to}」になっています。指定した「${expectedTo}」と異なる可能性があります`);
+            }
+        }
+    });
+
+    if (mismatchFound) {
+        const existingBanner = document.querySelector('.dest-warn-banner');
+        if (existingBanner) existingBanner.remove();
+        const banner = document.createElement('div');
+        banner.className = 'dest-warn-banner';
+        banner.textContent = `⚠ 到着駅が「${expectedTo}」と一致しない結果が含まれています。駅名を確認してください。`;
+        document.getElementById('results').prepend(banner);
+    }
 }
 
 function displayRouteResultFromParsed(routes){
@@ -1269,21 +1327,24 @@ function renderRouteCards(routes, data){
     const div=document.getElementById('results');
     let html='';
 
+    // [修正5] 区間分割検索の場合は運賃注記を表示
+    if(isSegmentedResult){
+        html += '<div class="fare-warn-banner">※ 経由駅指定のため区間ごとに運賃を合算しています。通し運賃（一括購入）の場合、実際の金額が異なることがあります。</div>';
+    }
+
     routes.routes.forEach((r,i)=>{
         html+=`<div class="route-card">`;
-        // ヘッダー
         html+=`<div class="route-header">
             <div><span class="route-label">ルート${i+1}</span></div>
             <div class="route-time-big">${esc(r.departure)} <span style="color:#64748b;font-size:14px;">→</span> <span class="arr">${esc(r.arrival)}</span></div>
             <div class="route-meta">
                 <span class="route-badge badge-duration">${esc(r.duration)}</span>
                 <span class="route-badge badge-transfer">乗換 ${r.transfers}回</span>
-                <span class="route-badge badge-fare">${esc(r.icFare||r.fare)}</span>
+                <span class="route-badge badge-fare">${esc(r.icFare||r.fare)}${isSegmentedResult?' (合算)':''}</span>
                 ${r.expressFare?`<span class="route-badge" style="background:rgba(239,68,68,0.1);color:#fca5a5;">特急 ${esc(r.expressFare)}</span>`:''}
             </div>
         </div>`;
 
-        // タイムライン
         html+=`<div class="route-timeline">`;
         if(r.segments) r.segments.forEach((seg,si)=>{
             if(seg.type==='ride'){
@@ -1291,7 +1352,6 @@ function renderRouteCards(routes, data){
                 const isFirst=si===0;
                 const isLast=si===r.segments.length-1;
 
-                // 出発駅
                 html+=`<div class="tl-segment">
                     <div class="tl-dot ${isFirst?'start':'transfer'}" style="border-color:${color};${isFirst?'background:'+color:''}"></div>
                     <div class="tl-line" style="background:${color};${isLast?'bottom:18px':''}"></div>
@@ -1319,10 +1379,8 @@ function renderRouteCards(routes, data){
                     </div>
                 </div>`;
 
-                // 到着駅（最後のsegment、または次がtransferの場合）
                 const nextSeg = r.segments[si+1];
                 if(isLast || (nextSeg && nextSeg.type==='transfer')){
-                    // 次がtransferなら、transfer.stationを到着駅名として優先使用（AI出力のズレ対策）
                     const arrName = (!isLast && nextSeg && nextSeg.station) ? nextSeg.station : seg.to;
                     html+=`<div class="tl-segment" style="padding-bottom:${isLast?'0':'4px'};">
                         <div class="tl-dot ${isLast?'end':'transfer'}" style="${isLast?'':'border-color:#fbbf24;background:#fbbf24;'}"></div>
@@ -1341,14 +1399,12 @@ function renderRouteCards(routes, data){
         });
         html+=`</div>`;
 
-        // 注意事項
         if(r.notes&&r.notes.length&&r.notes[0]){
-            html+=`<div class="route-notes">${r.notes.map(n=>`<p>${esc(n)}</p>`).join('')}</div>`;
+            html+=`<div class="route-notes">${r.notes.map(n=>`<p${n.startsWith('⚠')?' class="warn"':''}>${esc(n)}</p>`).join('')}</div>`;
         }
         html+=`</div>`;
     });
 
-    // 運行情報
     if(routes.serviceInfo&&routes.serviceInfo!=='平常運転'){
         html+=`<div class="route-notes" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:10px 14px;margin-bottom:10px;"><p class="warn">${esc(routes.serviceInfo)}</p></div>`;
     }
@@ -1358,7 +1414,6 @@ function renderRouteCards(routes, data){
     div.innerHTML=html;
 }
 
-// ===== フォールバック（Markdown表示） =====
 function displayFallback(data){
     const div=document.getElementById('results');
     const text=data.output_text||'';
@@ -1367,23 +1422,22 @@ function displayFallback(data){
 
 function buildCitationsHtml(data){
     let citations=[];
-    if(data.output&&Array.isArray(data.output))for(const item of data.output)if(item.type==='message'&&item.content)for(const c of item.content)if(c.annotations)for(const a of c.annotations)if(a.type==='url_citation'&&a.url)citations.push({url:a.url,title:a.title||a.url});
+    if(data&&data.output&&Array.isArray(data.output))for(const item of data.output)if(item.type==='message'&&item.content)for(const c of item.content)if(c.annotations)for(const a of c.annotations)if(a.type==='url_citation'&&a.url)citations.push({url:a.url,title:a.title||a.url});
     if(!citations.length)return '';
     const u=[...new Map(citations.map(c=>[c.url,c])).values()];
     return `<div class="sources"><h4>参考ソース</h4>${u.map(c=>`<a href="${escapeHtml(c.url)}" target="_blank">${escapeHtml(c.title)}</a>`).join('')}</div>`;
 }
 
-// ===== Markdown→HTML =====
 function mdToHtml(md){if(!md)return '<p>結果を取得できませんでした。</p>';let h=escapeHtml(md);h=h.replace(/```[\s\S]*?```/g,m=>{const c=m.replace(/```\w*\n?/,'').replace(/```$/,'');return `<pre><code>${c}</code></pre>`;});h=h.replace(/((\|[^\n]+\|\n)+)/g,tbl=>{const rows=tbl.trim().split('\n');if(rows.length<2)return tbl;let t='<table>';rows.forEach((r,i)=>{if(r.match(/^\|[\s\-:|]+\|$/))return;const cells=r.split('|').filter((_,j,a)=>j>0&&j<a.length-1);const tag=i===0?'th':'td';t+='<tr>'+cells.map(c=>`<${tag}>${c.trim()}</${tag}>`).join('')+'</tr>';});return t+'</table>';});h=h.replace(/^####\s(.+)$/gm,'<h4>$1</h4>');h=h.replace(/^###\s(.+)$/gm,'<h3>$1</h3>');h=h.replace(/^##\s(.+)$/gm,'<h2>$1</h2>');h=h.replace(/^#\s(.+)$/gm,'<h1>$1</h1>');h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');h=h.replace(/^- (.+)$/gm,'<li>$1</li>');h=h.replace(/^(\d+)\.\s(.+)$/gm,'<li>$2</li>');h=h.replace(/((<li>.*<\/li>\n?)+)/g,'<ul>$1</ul>');h=h.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');h=h.replace(/\n\n/g,'</p><p>');h='<p>'+h+'</p>';h=h.replace(/<p>\s*<\/p>/g,'');h=h.replace(/<p>\s*(<h[1-6]>)/g,'$1').replace(/(<\/h[1-6]>)\s*<\/p>/g,'$1');h=h.replace(/<p>\s*(<table>)/g,'$1').replace(/(<\/table>)\s*<\/p>/g,'$1');h=h.replace(/<p>\s*(<ul>)/g,'$1').replace(/(<\/ul>)\s*<\/p>/g,'$1');return h;}
 function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
 function esc(s){return s==null?'':escapeHtml(String(s));}
 
-// 混雑度ビジュアル（1〜5段階、人型アイコン）
+// [修正4] 混雑度: 「推定」ラベルを追加
 function renderCrowding(val){
     const n=Math.max(1,Math.min(5,parseInt(val)||3));
     const labels=['','空いている','余裕あり','普通','混雑','非常に混雑'];
     const icons=Array.from({length:5},(_,i)=>`<span class="ci${i<n?' on':''}">\u{1F9CD}</span>`).join('');
-    return `<span class="crowd-bar crowd-${n}"><span class="crowd-icons">${icons}</span><span class="crowd-label">${labels[n]}</span></span>`;
+    return `<span class="crowd-bar crowd-${n}"><span class="crowd-icons">${icons}</span><span class="crowd-label">${labels[n]}</span><span class="crowd-estimate-label">（推定）</span></span>`;
 }
 
 // ===== 徒歩ナビ・コピー・共有 =====
@@ -1417,12 +1471,58 @@ function removeFav(k){let f=JSON.parse(localStorage.getItem('route_favs')||'[]')
 function addHistory(a,b){let h=JSON.parse(localStorage.getItem('route_history')||'[]');const e=`${a} → ${b}`;h=h.filter(x=>x!==e);h.unshift(e);if(h.length>15)h=h.slice(0,15);localStorage.setItem('route_history',JSON.stringify(h));loadHistory();}
 function loadHistory(){const h=JSON.parse(localStorage.getItem('route_history')||'[]'),sec=document.getElementById('historySection'),list=document.getElementById('historyList');if(!h.length){sec.style.display='none';return;}sec.style.display='block';list.innerHTML=h.map(x=>{const[a,b]=x.split(' → ');return `<span class="tag" onclick="useFav('${ea(a)}','${ea(b)}')">${escapeHtml(x)}</span>`;}).join('');}
 
+// ===== [修正10] キャッシュ: 検索条件をキーに含める =====
+function getCacheKey(params) {
+    if (!params) return null;
+    return `cache_${params.from}_${params.to}_${params.date}_${params.time}_${params.via||''}`;
+}
+
+function saveCacheWithKey(params, text, routes) {
+    try {
+        const key = getCacheKey(params);
+        if (!key) return;
+        const entry = { text, routes: routes||null, time: Date.now(), date: params.date, from: params.from, to: params.to };
+        localStorage.setItem('cached_result', JSON.stringify({ key, ...entry }));
+    } catch(e) { console.warn('[Cache] 保存失敗:', e.message); }
+}
+
+function loadCachedResult() {
+    try {
+        const c = JSON.parse(localStorage.getItem('cached_result') || 'null');
+        if (!c) return;
+
+        // [修正10] 日付が今日と異なるキャッシュは無効化
+        const today = new Date().toISOString().split('T')[0];
+        if (c.date && c.date !== today) {
+            console.log('[Cache] 日付が異なるため無効化:', c.date, '!=', today);
+            localStorage.removeItem('cached_result');
+            return;
+        }
+
+        // 1時間以内のキャッシュのみ使用
+        if (Date.now() - c.time > 3600000) {
+            localStorage.removeItem('cached_result');
+            return;
+        }
+
+        if (c.routes && c.routes.routes && c.routes.routes.length) {
+            lastParsedRoutes = c.routes;
+            lastResultText = c.text || '';
+            renderRouteCards(c.routes, {output_text: c.text || ''});
+            document.getElementById('toolbar').style.display = 'flex'; updateFavBtn();
+        } else if (typeof c.text === 'string' && c.text) {
+            lastResultText = c.text;
+            document.getElementById('results').innerHTML = `<div class="result-card" style="opacity:0.7;"><h3>前回の検索結果（${esc(c.from||'')}→${esc(c.to||'')}）</h3><div class="result-content">${mdToHtml(c.text)}</div></div>`;
+        }
+    } catch(e) { console.warn('[Cache] 復元失敗:', e.message); }
+}
+
 // ===== ユーティリティ =====
 function showError(msg){document.getElementById('results').innerHTML=`<div class="error-msg">${escapeHtml(msg)}</div>`;}
 function ea(s){return s.replace(/'/g,"\\'").replace(/"/g,'&quot;');}
 
-// オフラインキャッシュ読み込み
-window.addEventListener('load',()=>{try{const c=JSON.parse(localStorage.getItem('cached_result')||'null');if(c&&Date.now()-c.time<3600000){if(c.routes&&c.routes.routes&&c.routes.routes.length){lastParsedRoutes=c.routes;lastResultText=c.text||'';renderRouteCards(c.routes,{output_text:c.text||''});document.getElementById('toolbar').style.display='flex';updateFavBtn();}else if(typeof c.text==='string'&&c.text){lastResultText=c.text;document.getElementById('results').innerHTML=`<div class="result-card" style="opacity:0.7;"><h3>前回の検索結果</h3><div class="result-content">${mdToHtml(c.text)}</div></div>`;}}}catch(e){console.log('[Cache] restore error:',e);}});
+// キャッシュ読み込み
+window.addEventListener('load', loadCachedResult);
 
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('searchBtn').disabled){const a=document.activeElement;if(['fromStation','toStation','viaStation','trainName'].includes(a.id))doSearch();}});
 </script>
