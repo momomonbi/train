@@ -242,8 +242,8 @@
             <div style="margin-top:8px;">
                 <label>検索方式</label>
                 <div class="sub-text" style="line-height:1.6;">
-                    Step1: <strong style="color:#60a5fa;">GPT-5.4 mini</strong>（メイン検索）<br>
-                    Step2: <strong style="color:#34d399;">GPT-5.4 Thinking</strong>（バックグラウンド検証・修正）
+                    Step1: <strong style="color:#60a5fa;">GPT-4o mini search</strong>（高速検索）<br>
+                    Step2: <strong style="color:#34d399;">GPT-5.4 mini</strong>（バックグラウンド検証・修正）
                 </div>
             </div>
             <div style="margin-top:8px;">
@@ -734,17 +734,17 @@ async function runSearch(prompt,isRoute){
 // ===== Step2フォールバック: GPT-5.4でフル再検索（JSON失敗時） =====
 async function startFullFallback(apiKey, prompt){
     const badge = document.getElementById('verifyBadge');
-    if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> GPT-5.4 Thinkingで再検索中...';}
+    if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> GPT-5.4 miniで再検索中...';}
 
     verifyAbort = new AbortController();
     try{
-        console.log('[Step2-Fallback] GPT-5.4 Thinking開始');
+        console.log('[Step2-Fallback] GPT-5.4 mini開始');
         const data = await callResponsesAPI(apiKey, prompt, MODEL_VERIFY, 16000, verifyAbort.signal, 'high', 'medium');
         lastResultText = data.output_text || '';
         displayRouteResult(data);
 
         if(lastParsedRoutes){
-            if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ GPT-5.4 Thinkingで再取得済み';}
+            if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ GPT-5.4 miniで再取得済み';}
             console.log('[Step2-Fallback] JSON成功 → タイムラインUI更新');
         } else {
             displayFallback(data);
@@ -1107,12 +1107,49 @@ function renderOdptTimetable(data, stationName) {
     return html;
 }
 
-// ===== OpenAI API（ハイブリッド: GPT-5.4 mini(メイン検索) + GPT-5.4 Thinking(検証)） =====
-const MODEL_FAST = 'gpt-5.4-mini';
-const MODEL_VERIFY = 'gpt-5.4';
+// ===== OpenAI API（ハイブリッド: GPT-4o mini search(メイン検索) + GPT-5.4 mini(検証)） =====
+const MODEL_FAST = 'gpt-4o-mini-search-preview';
+const MODEL_VERIFY = 'gpt-5.4-mini';
 
 async function callAPI(apiKey, input, ctxSize, maxTok) {
-    return callResponsesAPI(apiKey, input, MODEL_FAST, maxTok, null, ctxSize || 'medium');
+    // Step1: gpt-4o-mini-search-preview は Chat Completions API を使用
+    return callChatCompletionsAPI(apiKey, input, MODEL_FAST, maxTok);
+}
+
+async function callChatCompletionsAPI(apiKey, input, model, maxTok, signal) {
+    const timeoutMs = (parseInt(document.getElementById('timeoutSec').value) || 120) * 1000;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    if (signal) signal.addEventListener('abort', () => controller.abort());
+
+    console.log(`[API-ChatCompletions] model=${model} timeout=${timeoutMs}ms`);
+    try {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
+            body: JSON.stringify({
+                model,
+                web_search_options: { user_location: { type: 'approximate', approximate: { country: 'JP' } } },
+                messages: [{ role: 'user', content: input }],
+                max_tokens: maxTok || 16000
+            }),
+            signal: controller.signal
+        });
+        clearTimeout(timer);
+        console.log(`[API-ChatCompletions] status=${res.status}`);
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API Error: ${res.status}`); }
+        const data = await res.json();
+        data.output_text = data.choices?.[0]?.message?.content || '';
+        const ann = data.choices?.[0]?.message?.annotations || [];
+        data.output = [{ type:'message', content:[{ annotations: ann.map(a => ({
+            type:'url_citation', url: a.url||a.url_citation?.url||'', title: a.title||a.url_citation?.title||''
+        }))}]}];
+        return data;
+    } catch(err) {
+        clearTimeout(timer);
+        if (err.name === 'AbortError') throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。タイムアウト値を延長してください。`);
+        throw err;
+    }
 }
 
 async function callResponsesAPI(apiKey, input, model, maxTok, signal, searchCtxSize, reasoningEffort) {
@@ -1302,7 +1339,7 @@ function renderRouteCards(routes, data){
     }
 
     if(data) html+=buildCitationsHtml(data);
-    html+=`<div style="text-align:right;font-size:12px;color:#64748b;margin-top:4px;">Step1: GPT-5.4 mini → Step2: GPT-5.4 Thinking で検証</div>`;
+    html+=`<div style="text-align:right;font-size:12px;color:#64748b;margin-top:4px;">Step1: GPT-4o mini search → Step2: GPT-5.4 mini で検証</div>`;
     div.innerHTML=html;
 }
 
