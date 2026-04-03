@@ -184,7 +184,24 @@
         <button onclick="document.getElementById('settingsPanel').classList.toggle('open')">API設定</button>
     </div>
     <div class="settings-panel" id="settingsPanel">
-        <div class="card"><label>OpenAI API Key</label><input type="password" id="apiKey" placeholder="sk-proj-..." /></div>
+        <div class="card">
+            <label>OpenAI API Key</label>
+            <input type="password" id="apiKey" placeholder="sk-proj-..." />
+            <div style="margin-top:8px;">
+                <label>モデル選択</label>
+                <select id="modelSelect">
+                    <option value="gpt-4.1">gpt-4.1（高速・安定）</option>
+                    <option value="gpt-4.1-mini">gpt-4.1-mini（最速・低コスト）</option>
+                    <option value="gpt-5.4" selected>gpt-5.4（高性能・遅い場合あり）</option>
+                    <option value="gpt-5.4-mini">gpt-5.4-mini</option>
+                </select>
+                <div class="sub-text" style="margin-top:3px;">※ GPT-5系 + web検索は40分以上かかる場合があります。遅い場合は gpt-4.1 をお試しください。</div>
+            </div>
+            <div style="margin-top:8px;">
+                <label>タイムアウト（秒）</label>
+                <input type="number" id="timeoutSec" value="120" min="30" max="600" style="width:100px;" />
+            </div>
+        </div>
     </div>
 
     <!-- 検索モード切替 -->
@@ -396,6 +413,14 @@ updateNow();
 const savedKey = localStorage.getItem('openai_api_key');
 if (savedKey) document.getElementById('apiKey').value = savedKey;
 document.getElementById('apiKey').addEventListener('change', e => localStorage.setItem('openai_api_key', e.target.value.trim()));
+
+// モデル・タイムアウト設定の永続化
+const savedModel = localStorage.getItem('openai_model');
+if (savedModel) document.getElementById('modelSelect').value = savedModel;
+document.getElementById('modelSelect').addEventListener('change', e => localStorage.setItem('openai_model', e.target.value));
+const savedTimeout = localStorage.getItem('openai_timeout');
+if (savedTimeout) document.getElementById('timeoutSec').value = savedTimeout;
+document.getElementById('timeoutSec').addEventListener('change', e => localStorage.setItem('openai_timeout', e.target.value));
 
 document.getElementById('optCommuterPass').addEventListener('change', e => {
     document.getElementById('commuterPassSection').style.display = e.target.checked ? 'block' : 'none';
@@ -716,17 +741,32 @@ ${walkNote}
 
 // ===== API =====
 async function callAPI(apiKey, input, ctxSize, maxTok) {
-    const res = await fetch('https://api.openai.com/v1/responses', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
-        body: JSON.stringify({
-            model: 'gpt-5.4',
-            tools: [{ type:'web_search_preview', search_context_size: ctxSize||'medium', user_location:{type:'approximate',country:'JP'} }],
-            input, max_output_tokens: maxTok||16000
-        })
-    });
-    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message||`API Error: ${res.status}`); }
-    return await res.json();
+    const model = document.getElementById('modelSelect').value;
+    const timeoutMs = (parseInt(document.getElementById('timeoutSec').value) || 120) * 1000;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        const res = await fetch('https://api.openai.com/v1/responses', {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
+            body: JSON.stringify({
+                model,
+                tools: [{ type:'web_search_preview', search_context_size: ctxSize||'medium', user_location:{type:'approximate',country:'JP'} }],
+                input, max_output_tokens: maxTok||16000
+            }),
+            signal: controller.signal
+        });
+        clearTimeout(timer);
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message||`API Error: ${res.status}`); }
+        return await res.json();
+    } catch (err) {
+        clearTimeout(timer);
+        if (err.name === 'AbortError') {
+            throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。API設定からモデルを gpt-4.1 に変更するか、タイムアウトを延長してください。`);
+        }
+        throw err;
+    }
 }
 
 // ===== 結果表示 =====
