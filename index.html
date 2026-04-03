@@ -479,7 +479,15 @@ async function searchRoute(overrideTime){
         excluded:[...document.querySelectorAll('.transport-chip.off')].map(c=>c.dataset.key),
         trainName:document.getElementById('trainName').value.trim(),specialTicket:document.getElementById('specialTicket').value,
         freepassName:document.getElementById('freepassName').value.trim()};
-    addHistory(from,to); await runSearch(buildRoutePrompt(lastSearchParams),true);
+    addHistory(from,to);
+
+    // 経由駅がある場合は区間ごとにAPIを分割呼び出し
+    const viaStations = via ? via.split(/[,、，\s]+/).filter(s=>s).map(s=>s.replace(/駅$/,'')) : [];
+    if(viaStations.length){
+        await runSegmentedSearch(apiKey, lastSearchParams, [from, ...viaStations, to]);
+    } else {
+        await runSearch(buildRoutePrompt(lastSearchParams),true);
+    }
 }
 async function searchTimetable(){
     const from=document.getElementById('fromStation').value.trim();
@@ -555,6 +563,133 @@ async function checkServiceStatus(){
 
 let lastParsedRoutes = null; // Step2用に保持
 let verifyAbort = null; // 検証中断用
+
+// ===== 経由駅あり: 区間ごとにAPI呼び出しして結合 =====
+async function runSegmentedSearch(apiKey, params, stations){
+    // stations = ['川間', '大宮', '西千葉'] のような配列
+    if(verifyAbort){verifyAbort.abort();verifyAbort=null;}
+    setLoading(true);
+    const segments = [];
+    for(let i=0;i<stations.length-1;i++){
+        segments.push({from: stations[i], to: stations[i+1]});
+    }
+    console.log('[Segmented] 区間:', segments.map(s=>`${s.from}→${s.to}`).join(', '));
+
+    try{
+        // 各区間を並列でAPI呼び出し
+        const segmentPromises = segments.map((seg, idx) => {
+            const segParams = {...params, from: seg.from, to: seg.to, via: ''};
+            const prompt = buildRoutePrompt(segParams);
+            console.log(`[Segmented] 区間${idx+1} (${seg.from}→${seg.to}) 検索開始`);
+            return callAPI(apiKey, prompt, 'high', 16000).then(data => {
+                console.log(`[Segmented] 区間${idx+1} output_text length:`, (data.output_text||'').length);
+                return data;
+            });
+        });
+
+        const results = await Promise.all(segmentPromises);
+
+        // 各区間のJSONを解析
+        const allSegRoutes = [];
+        let anyFailed = false;
+        for(let i=0;i<results.length;i++){
+            const text = results[i].output_text || '';
+            let parsed = null;
+            try{
+                let cleaned = text.replace(/【[^】]*】/g, '');
+                let jsonStr = cleaned;
+                const m1 = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
+                if(m1) jsonStr = m1[1];
+                else { const m2 = cleaned.match(/\{[\s\S]*?"routes"\s*:\s*\[[\s\S]*\]/); if(m2){ let s=m2[0],depth=0,end=0; for(let j=0;j<s.length;j++){if(s[j]==='{')depth++;else if(s[j]==='}'){depth--;if(depth===0){end=j+1;break;}}} if(end>0)jsonStr=s.slice(0,end); }}
+                jsonStr = jsonStr.trim().replace(/,\s*([}\]])/g, '$1');
+                parsed = JSON.parse(jsonStr);
+            }catch(e){ console.log(`[Segmented] 区間${i+1} JSON解析失敗:`, e.message); }
+
+            if(parsed && parsed.routes && parsed.routes.length){
+                allSegRoutes.push({segIndex:i, from:segments[i].from, to:segments[i].to, route:parsed.routes[0]});
+            } else {
+                anyFailed = true;
+                console.log(`[Segmented] 区間${i+1} (${segments[i].from}→${segments[i].to}) 取得失敗`);
+            }
+        }
+
+        if(anyFailed || allSegRoutes.length !== segments.length){
+            // 一部区間が失敗 → 通常の一括検索にフォールバック
+            console.log('[Segmented] 一部区間失敗 → 一括検索にフォールバック');
+            await runSearch(buildRoutePrompt(params), true);
+            return;
+        }
+
+        // 全区間成功 → 結合して1つのルートに
+        console.log('[Segmented] 全区間成功 → 結合');
+        const combined = combineSegmentRoutes(allSegRoutes);
+        const fakeData = {output_text: JSON.stringify(combined)};
+        lastResultText = fakeData.output_text;
+        lastParsedRoutes = combined;
+        renderRouteCards(combined, fakeData);
+        document.getElementById('toolbar').style.display='flex';updateFavBtn();
+
+        // 検証バッジ
+        const badge = document.getElementById('verifyBadge');
+        if(badge){badge.style.display='inline-flex';badge.className='verify-badge done';badge.innerHTML='✓ 区間分割検索完了';}
+    }catch(err){
+        console.log('[Segmented] エラー:', err);
+        showError(`エラー: ${err.message}`);
+    }finally{setLoading(false);}
+}
+
+function combineSegmentRoutes(segRoutes){
+    // 各区間のルートを1つのルートに結合
+    const allSegments = [];
+    let totalFare = 0, totalIcFare = 0, totalTransfers = 0;
+    const dep = segRoutes[0].route.departure;
+    const arr = segRoutes[segRoutes.length-1].route.arrival;
+
+    segRoutes.forEach((sr, idx) => {
+        const r = sr.route;
+        // 運賃を数値抽出して加算
+        const fareNum = parseInt((r.fare||'').replace(/[^0-9]/g,''))||0;
+        const icFareNum = parseInt((r.icFare||'').replace(/[^0-9]/g,''))||0;
+        totalFare += fareNum;
+        totalIcFare += icFareNum;
+        totalTransfers += (r.transfers||0);
+
+        // セグメントを追加
+        if(r.segments) r.segments.forEach(s => allSegments.push(s));
+
+        // 区間の間にtransferセグメントを追加（最後の区間以外）
+        if(idx < segRoutes.length - 1){
+            const lastSeg = r.segments?.[r.segments.length-1];
+            const nextRoute = segRoutes[idx+1].route;
+            const firstNextSeg = nextRoute.segments?.[0];
+            // 既にtransferがある場合は追加しない
+            if(lastSeg && lastSeg.type !== 'transfer'){
+                totalTransfers++;
+                allSegments.push({type:'transfer', station: sr.to, minutes: 5});
+            }
+        }
+    });
+
+    // 所要時間計算
+    const depMin = timeToMin(dep), arrMin = timeToMin(arr);
+    const diff = arrMin >= depMin ? arrMin - depMin : arrMin + 1440 - depMin;
+    const durH = Math.floor(diff/60), durM = diff%60;
+    const duration = durH > 0 ? `${durH}時間${durM}分` : `${durM}分`;
+
+    return {
+        routes: [{
+            departure: dep, arrival: arr, duration,
+            transfers: totalTransfers,
+            fare: `${totalFare}円`, icFare: `${totalIcFare}円`,
+            expressFare: null,
+            segments: allSegments,
+            notes: ['経由駅指定のため区間分割検索で結合']
+        }],
+        serviceInfo: '平常運転'
+    };
+}
+
+function timeToMin(t){ const [h,m]=(t||'0:0').split(':').map(Number); return h*60+m; }
 
 async function runSearch(prompt,isRoute){
     const apiKey=getApiKey();if(!apiKey)return;
@@ -798,16 +933,10 @@ function buildRoutePrompt(p){
     return `あなたは日本の電車乗り換え案内の専門家です。必ずウェブ検索で乗り換え検索サイトの実際の検索結果を参照して回答してください。自分の知識だけで経路を推測しないでください。
 
 【検索手順】
-${viaStations.length
-? `1. 経由駅が指定されているので、区間ごとに分けて検索してください:
-${[p.from, ...viaStations.map(s=>s.replace(/駅$/,'')), p.to].reduce((acc,s,i,arr)=> i<arr.length-1 ? acc.concat(`   - 「${s}駅から${arr[i+1]}駅 乗り換え」`) : acc, []).join('\n')}
-2. 各区間の検索結果をYahoo乗換案内・ジョルダン・NAVITIME・駅探等で確認してください
-3. 各区間の結果を組み合わせて、全体の経路を構成してください
-4. 全ての鉄道会社（JR・私鉄・地下鉄・第三セクター等）の路線を含めて検索してください`
-: `1. まず「${p.from}駅から${p.to}駅 乗り換え」でウェブ検索してください
+1. まず「${p.from}駅から${p.to}駅 乗り換え」でウェブ検索してください
 2. Yahoo乗換案内・ジョルダン・NAVITIME・駅探等の乗り換え検索結果ページを参照してください
 3. 検索結果が見つからない場合は「${p.from} ${p.to} 電車 行き方」でも検索してください
-4. 全ての鉄道会社（JR・私鉄・地下鉄・第三セクター等）の路線を含めて検索してください`}
+4. 全ての鉄道会社（JR・私鉄・地下鉄・第三セクター等）の路線を含めて検索してください
 
 【条件】
 - ${routeExpr}
