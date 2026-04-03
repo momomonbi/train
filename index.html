@@ -546,22 +546,60 @@ let verifyAbort = null; // 検証中断用
 
 async function runSearch(prompt,isRoute){
     const apiKey=getApiKey();if(!apiKey)return;
-    // 前回の検証を中断
     if(verifyAbort){verifyAbort.abort();verifyAbort=null;}
     setLoading(true);
     try{
+        // Step1: mini-searchで高速取得
+        console.log('[Step1] mini-search開始');
         const data=await callAPI(apiKey,prompt,'medium',16000);lastResultText=data.output_text||'';
+
         if(isRoute){
             displayRouteResult(data);
-            document.getElementById('toolbar').style.display='flex';updateFavBtn();
-            // Step2: バックグラウンド検証を自動発火
-            if(lastParsedRoutes) startVerification(apiKey, lastParsedRoutes);
+
+            if(lastParsedRoutes){
+                // JSON解析成功 → タイムラインUI表示済み → Step2で検証
+                document.getElementById('toolbar').style.display='flex';updateFavBtn();
+                console.log('[Step1] JSON成功 → Step2検証を開始');
+                startVerification(apiKey, lastParsedRoutes);
+            } else {
+                // JSON解析失敗 → Markdownフォールバック中 → Step2で4o-searchフル再検索
+                console.log('[Step1] JSON失敗 → Step2フル検索にフォールバック');
+                document.getElementById('toolbar').style.display='flex';updateFavBtn();
+                startFullFallback(apiKey, prompt);
+            }
         } else {
             displayFallback(data);
             document.getElementById('toolbar').style.display='none';
         }
         if(lastResultText)localStorage.setItem('cached_result',JSON.stringify({text:lastResultText,time:Date.now()}));
     }catch(err){showError(`エラー: ${err.message}`);}finally{setLoading(false);}
+}
+
+// ===== Step2フォールバック: 4o-searchでフル再検索（JSON失敗時） =====
+async function startFullFallback(apiKey, prompt){
+    const badge = document.getElementById('verifyBadge');
+    if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> 高精度モデルで再検索中...';}
+
+    verifyAbort = new AbortController();
+    try{
+        console.log('[Step2-Fallback] 4o-search開始');
+        const data = await callSearchAPI(apiKey, prompt, MODEL_VERIFY, 16000, verifyAbort.signal);
+        lastResultText = data.output_text || '';
+        displayRouteResult(data);
+
+        if(lastParsedRoutes){
+            if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ 高精度モデルで再取得済み';}
+            console.log('[Step2-Fallback] JSON成功 → タイムラインUI更新');
+        } else {
+            // 4o-searchでもJSON失敗 → Markdownのまま
+            if(badge){badge.className='verify-badge done';badge.innerHTML='検索完了（テキスト表示）';}
+            console.log('[Step2-Fallback] JSON再失敗 → Markdownのまま');
+        }
+    }catch(err){
+        if(err.name==='AbortError')return;
+        console.log('[Step2-Fallback] error:', err);
+        if(badge){badge.className='verify-badge done';badge.innerHTML='再検索スキップ';}
+    }
 }
 
 // ===== Step2: バックグラウンド検証 =====
