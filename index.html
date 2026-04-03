@@ -190,12 +190,14 @@
             <div style="margin-top:8px;">
                 <label>モデル選択</label>
                 <select id="modelSelect">
-                    <option value="gpt-4.1">gpt-4.1（高速・安定）</option>
-                    <option value="gpt-4.1-mini">gpt-4.1-mini（最速・低コスト）</option>
-                    <option value="gpt-5.4" selected>gpt-5.4（高性能・遅い場合あり）</option>
+                    <option value="gpt-4o-mini-search-preview" selected>gpt-4o-mini-search（検索特化・最速・最安）</option>
+                    <option value="gpt-4o-search-preview">gpt-4o-search（検索特化・高品質）</option>
+                    <option value="gpt-4.1">gpt-4.1（汎用・Responses API）</option>
+                    <option value="gpt-4.1-mini">gpt-4.1-mini（汎用・低コスト）</option>
+                    <option value="gpt-5.4">gpt-5.4（最高性能・遅い場合あり）</option>
                     <option value="gpt-5.4-mini">gpt-5.4-mini</option>
                 </select>
-                <div class="sub-text" style="margin-top:3px;">※ GPT-5系 + web検索は40分以上かかる場合があります。遅い場合は gpt-4.1 をお試しください。</div>
+                <div class="sub-text" style="margin-top:3px;">※ 検索特化モデルが高速でおすすめ。GPT-5系は遅い場合あり。</div>
             </div>
             <div style="margin-top:8px;">
                 <label>タイムアウト（秒）</label>
@@ -740,30 +742,70 @@ ${walkNote}
 }
 
 // ===== API =====
+const SEARCH_MODELS = ['gpt-4o-search-preview', 'gpt-4o-mini-search-preview'];
+
 async function callAPI(apiKey, input, ctxSize, maxTok) {
     const model = document.getElementById('modelSelect').value;
     const timeoutMs = (parseInt(document.getElementById('timeoutSec').value) || 120) * 1000;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const isSearchModel = SEARCH_MODELS.includes(model);
 
     try {
-        const res = await fetch('https://api.openai.com/v1/responses', {
-            method: 'POST',
-            headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
-            body: JSON.stringify({
-                model,
-                tools: [{ type:'web_search_preview', search_context_size: ctxSize||'medium', user_location:{type:'approximate',country:'JP'} }],
-                input, max_output_tokens: maxTok||16000
-            }),
-            signal: controller.signal
-        });
+        let res;
+        if (isSearchModel) {
+            // 検索特化モデル → Chat Completions API + web_search_options
+            res = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
+                body: JSON.stringify({
+                    model,
+                    web_search_options: {
+                        user_location: { type: 'approximate', approximate: { country: 'JP' } }
+                    },
+                    messages: [{ role: 'user', content: input }],
+                    max_tokens: maxTok || 16000
+                }),
+                signal: controller.signal
+            });
+        } else {
+            // 汎用モデル → Responses API + web_search_preview
+            res = await fetch('https://api.openai.com/v1/responses', {
+                method: 'POST',
+                headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
+                body: JSON.stringify({
+                    model,
+                    tools: [{ type:'web_search_preview', search_context_size: ctxSize||'medium', user_location:{type:'approximate',country:'JP'} }],
+                    input, max_output_tokens: maxTok||16000
+                }),
+                signal: controller.signal
+            });
+        }
         clearTimeout(timer);
         if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message||`API Error: ${res.status}`); }
-        return await res.json();
+        const data = await res.json();
+
+        // レスポンス形式を統一（output_textプロパティを保証）
+        if (isSearchModel) {
+            data.output_text = data.choices?.[0]?.message?.content || '';
+            // Chat Completionsのcitationsをoutput形式に変換
+            const annotations = data.choices?.[0]?.message?.annotations || [];
+            data.output = [{
+                type: 'message',
+                content: [{
+                    annotations: annotations.map(a => ({
+                        type: 'url_citation',
+                        url: a.url || a.url_citation?.url || '',
+                        title: a.title || a.url_citation?.title || ''
+                    }))
+                }]
+            }];
+        }
+        return data;
     } catch (err) {
         clearTimeout(timer);
         if (err.name === 'AbortError') {
-            throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。API設定からモデルを gpt-4.1 に変更するか、タイムアウトを延長してください。`);
+            throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。タイムアウトを延長するか、検索特化モデルをお試しください。`);
         }
         throw err;
     }
