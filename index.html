@@ -236,7 +236,7 @@
             <div style="margin-top:8px;">
                 <label>検索方式</label>
                 <div class="sub-text" style="line-height:1.6;">
-                    Step1: <strong style="color:#60a5fa;">gpt-4o-mini-search</strong>（高速表示）<br>
+                    Step1: <strong style="color:#60a5fa;">GPT-5.3 Instant</strong>（メイン検索）<br>
                     Step2: <strong style="color:#34d399;">gpt-4o-search</strong>（バックグラウンド検証・修正）
                 </div>
             </div>
@@ -621,20 +621,8 @@ async function startFullFallback(apiKey, prompt){
 async function startStep3Fallback(apiKey, prompt, badge){
     try{
         console.log('[Step3] gpt-5.4 Responses API開始');
-        const res = await fetch('https://api.openai.com/v1/responses', {
-            method: 'POST',
-            headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
-            body: JSON.stringify({
-                model: 'gpt-5.4',
-                tools: [{ type:'web_search_preview', search_context_size:'medium', user_location:{type:'approximate',country:'JP'} }],
-                input: prompt, max_output_tokens: 16000
-            }),
-            signal: verifyAbort?.signal
-        });
-        if(!res.ok) throw new Error(`API Error: ${res.status}`);
-        const data = await res.json();
-        data.output_text = data.output_text || '';
-        lastResultText = data.output_text;
+        const data = await callResponsesAPI(apiKey, prompt, 'gpt-5.4', 16000, verifyAbort?.signal, 'medium');
+        lastResultText = data.output_text || '';
         displayRouteResult(data);
         if(lastParsedRoutes){
             if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ GPT-5.4で再取得済み';}
@@ -988,12 +976,44 @@ function renderOdptTimetable(data, stationName) {
     return html;
 }
 
-// ===== OpenAI API（ハイブリッド: mini-search固定 + 4o-search検証） =====
-const MODEL_FAST = 'gpt-4o-mini-search-preview';
+// ===== OpenAI API（ハイブリッド: GPT-5.3 Instant(メイン検索) + 4o-search検証） =====
+const MODEL_FAST = 'gpt-5.3-chat-latest';
 const MODEL_VERIFY = 'gpt-4o-search-preview';
 
 async function callAPI(apiKey, input, ctxSize, maxTok) {
-    return callSearchAPI(apiKey, input, MODEL_FAST, maxTok);
+    return callResponsesAPI(apiKey, input, MODEL_FAST, maxTok, null, ctxSize || 'medium');
+}
+
+async function callResponsesAPI(apiKey, input, model, maxTok, signal, searchCtxSize) {
+    const timeoutMs = (parseInt(document.getElementById('timeoutSec').value) || 120) * 1000;
+    const controller = new AbortController();
+    const extSignal = signal;
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    if (extSignal) extSignal.addEventListener('abort', () => controller.abort());
+
+    console.log(`[API-Responses] model=${model} search_ctx=${searchCtxSize||'medium'} timeout=${timeoutMs}ms`);
+    try {
+        const res = await fetch('https://api.openai.com/v1/responses', {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
+            body: JSON.stringify({
+                model,
+                tools: [{ type:'web_search_preview', search_context_size: searchCtxSize || 'medium', user_location:{type:'approximate',country:'JP'} }],
+                input, max_output_tokens: maxTok || 16000
+            }),
+            signal: controller.signal
+        });
+        clearTimeout(timer);
+        console.log(`[API-Responses] status=${res.status}`);
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API Error: ${res.status}`); }
+        const data = await res.json();
+        data.output_text = data.output_text || '';
+        return data;
+    } catch(err) {
+        clearTimeout(timer);
+        if (err.name === 'AbortError') throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。タイムアウト値を延長してください。`);
+        throw err;
+    }
 }
 
 async function callSearchAPI(apiKey, input, model, maxTok, signal) {
@@ -1161,7 +1181,7 @@ function renderRouteCards(routes, data){
     }
 
     if(data) html+=buildCitationsHtml(data);
-    html+=`<div style="text-align:right;font-size:12px;color:#64748b;margin-top:4px;">Step1: ${esc(MODEL_FAST)} → Step2: ${esc(MODEL_VERIFY)} で検証</div>`;
+    html+=`<div style="text-align:right;font-size:12px;color:#64748b;margin-top:4px;">Step1: GPT-5.3 Instant → Step2: ${esc(MODEL_VERIFY)} で検証</div>`;
     div.innerHTML=html;
 }
 
