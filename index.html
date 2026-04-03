@@ -768,15 +768,15 @@ async function startFullFallback(apiKey, prompt){
     }
 }
 
-// ===== Step3: gpt-5.4 Responses APIフォールバック =====
+// ===== Step3: Chat Completions API フォールバック（動作確認済みモデル） =====
 async function startStep3Fallback(apiKey, prompt, badge){
     try{
-        console.log('[Step3] gpt-5.4 Responses API開始');
-        const data = await callResponsesAPI(apiKey, prompt, 'gpt-5.4', 16000, verifyAbort?.signal, 'medium');
+        console.log('[Step3] gpt-4o-mini-search-preview (Chat Completions) 開始');
+        const data = await callSearchAPI(apiKey, prompt, 'gpt-4o-mini-search-preview', 16000, verifyAbort?.signal);
         lastResultText = data.output_text || '';
         displayRouteResult(data);
         if(lastParsedRoutes){
-            if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ GPT-5.4で再取得済み';}
+            if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ 再取得済み';}
         } else {
             displayFallback(data);
             if(badge){badge.className='verify-badge done';badge.innerHTML='検索完了（テキスト表示）';}
@@ -1137,7 +1137,16 @@ const MODEL_FAST = 'gpt-5.3-chat-latest';
 const MODEL_VERIFY = 'gpt-5.4';
 
 async function callAPI(apiKey, input, ctxSize, maxTok) {
-    return callResponsesAPI(apiKey, input, MODEL_FAST, maxTok, null, ctxSize || 'medium');
+    // Step1: Responses API を試行
+    try {
+        const data = await callResponsesAPI(apiKey, input, MODEL_FAST, maxTok, null, ctxSize || 'medium');
+        if (data.output_text && data.output_text.trim()) return data;
+        console.log('[callAPI] Responses API empty → Chat Completions fallback');
+    } catch(e) {
+        console.log('[callAPI] Responses API error:', e.message, '→ Chat Completions fallback');
+    }
+    // フォールバック: Chat Completions API（動作確認済み）
+    return callSearchAPI(apiKey, input, 'gpt-4o-mini-search-preview', maxTok);
 }
 
 async function callResponsesAPI(apiKey, input, model, maxTok, signal, searchCtxSize, reasoningEffort) {
@@ -1165,6 +1174,30 @@ async function callResponsesAPI(apiKey, input, model, maxTok, signal, searchCtxS
         console.log(`[API-Responses] status=${res.status}`);
         if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API Error: ${res.status}`); }
         const data = await res.json();
+        // output_text が空の場合、text フィールドや output 配列からテキストを抽出
+        if (!data.output_text) {
+            // text フィールドを確認（新しいAPI形式）
+            if (data.text && typeof data.text === 'string') {
+                data.output_text = data.text;
+            } else if (data.text && typeof data.text === 'object' && data.text.value) {
+                data.output_text = data.text.value;
+            }
+            // output 配列からメッセージテキストを抽出
+            if (!data.output_text && data.output && Array.isArray(data.output)) {
+                const texts = [];
+                for (const item of data.output) {
+                    if (item.type === 'message' && item.content) {
+                        for (const c of item.content) {
+                            if (c.type === 'output_text' && c.text) texts.push(c.text);
+                            else if (c.type === 'text' && c.text) texts.push(c.text);
+                            else if (typeof c.text === 'string') texts.push(c.text);
+                        }
+                    }
+                }
+                if (texts.length) data.output_text = texts.join('\n');
+            }
+            console.log('[API-Responses] output_text recovery:', data.output_text ? `found ${data.output_text.length} chars` : 'still empty');
+        }
         data.output_text = data.output_text || '';
         return data;
     } catch(err) {
