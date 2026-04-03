@@ -307,7 +307,6 @@
             <label class="check-label"><input type="checkbox" id="optBarrierFree" /> バリアフリー</label>
             <label class="check-label"><input type="checkbox" id="optBoardingPos" checked /> 乗車位置</label>
             <label class="check-label"><input type="checkbox" id="optDoorSide" /> ドア方向</label>
-            <label class="check-label"><input type="checkbox" id="optCrowding" /> 混雑度</label>
             <label class="check-label"><input type="checkbox" id="optAvoidDelay" checked /> 遅延回避</label>
             <label class="check-label"><input type="checkbox" id="optCommuterPass" /> 定期券考慮</label>
         </div>
@@ -473,7 +472,7 @@ async function searchRoute(overrideTime){
     const sel=id=>{const s=document.getElementById(id);return s.options[s.selectedIndex].text;};
     lastSearchParams={from,to,via,date,time,timeTypeText:sel('timeType'),priorityText:sel('priority'),walkText:sel('walkSpeed'),
         barrierFree:document.getElementById('optBarrierFree').checked,boardingPos:document.getElementById('optBoardingPos').checked,
-        doorSide:document.getElementById('optDoorSide').checked,crowding:document.getElementById('optCrowding').checked,
+        doorSide:document.getElementById('optDoorSide').checked,crowding:true,
         avoidDelay:document.getElementById('optAvoidDelay').checked,commuterPass:document.getElementById('optCommuterPass').checked,
         passFrom:document.getElementById('passFrom').value.trim(),passTo:document.getElementById('passTo').value.trim(),
         excluded:[...document.querySelectorAll('.transport-chip.off')].map(c=>c.dataset.key),
