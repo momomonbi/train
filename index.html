@@ -191,6 +191,12 @@
         .settings-panel { display: none; margin-bottom: 10px; }
         .settings-panel.open { display: block; }
 
+        /* 検証バッジ */
+        .verify-badge { display: none; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+        .verify-badge.verifying { display: inline-flex; background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.25); color: #93c5fd; }
+        .verify-badge.done { display: inline-flex; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.25); color: #34d399; }
+        .verify-badge.corrected { display: inline-flex; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25); color: #fde68a; animation: pulse 2s ease-in-out; }
+
         .info-banner { display: none; padding: 8px 12px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 11px; margin-bottom: 10px; font-size: 12px; color: #fca5a5; }
         .info-banner.show { display: block; }
         .info-banner.ok { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.2); color: #34d399; }
@@ -209,10 +215,6 @@
 </head>
 <body>
 <div class="container">
-    <header>
-        <h1>電車乗り換え検索</h1>
-        <p>AI Web Search で最新の経路情報を取得</p>
-    </header>
 
     <div class="settings-toggle"><button onclick="document.getElementById('settingsPanel').classList.toggle('open')">API設定</button></div>
     <div class="settings-panel" id="settingsPanel">
@@ -220,14 +222,11 @@
             <label>OpenAI API Key</label>
             <input type="password" id="apiKey" placeholder="sk-proj-..." />
             <div style="margin-top:8px;">
-                <label>モデル選択</label>
-                <select id="modelSelect">
-                    <option value="gpt-4o-mini-search-preview" selected>gpt-4o-mini-search（検索特化・最速）</option>
-                    <option value="gpt-4o-search-preview">gpt-4o-search（検索特化・高品質）</option>
-                    <option value="gpt-4.1">gpt-4.1（汎用）</option>
-                    <option value="gpt-4.1-mini">gpt-4.1-mini（汎用・低コスト）</option>
-                    <option value="gpt-5.4">gpt-5.4（最高性能・遅い場合あり）</option>
-                </select>
+                <label>検索方式</label>
+                <div class="sub-text" style="line-height:1.6;">
+                    Step1: <strong style="color:#60a5fa;">gpt-4o-mini-search</strong>（高速表示）<br>
+                    Step2: <strong style="color:#34d399;">gpt-4o-search</strong>（バックグラウンド検証・修正）
+                </div>
             </div>
             <div style="margin-top:8px;">
                 <label>タイムアウト（秒）</label>
@@ -325,6 +324,7 @@
 
     <div class="alarm-bar" id="alarmBar"><div class="alarm-time" id="alarmTime">--:--</div><div class="alarm-label" id="alarmLabel">降車アラーム</div><button class="alarm-cancel" onclick="cancelAlarm()">解除</button></div>
 
+    <div id="verifyBadge" class="verify-badge" style="display:none;"></div>
     <div class="toolbar" id="toolbar" style="display:none;">
         <button class="tool-btn" onclick="searchShift(-1)">&#9664; 1本前</button>
         <button class="tool-btn" onclick="searchShift(+1)">1本後 &#9654;</button>
@@ -399,8 +399,6 @@ updateNow();
 
 const savedKey=localStorage.getItem('openai_api_key'); if(savedKey)document.getElementById('apiKey').value=savedKey;
 document.getElementById('apiKey').addEventListener('change',e=>localStorage.setItem('openai_api_key',e.target.value.trim()));
-const savedModel=localStorage.getItem('openai_model'); if(savedModel)document.getElementById('modelSelect').value=savedModel;
-document.getElementById('modelSelect').addEventListener('change',e=>localStorage.setItem('openai_model',e.target.value));
 const savedTimeout=localStorage.getItem('openai_timeout'); if(savedTimeout)document.getElementById('timeoutSec').value=savedTimeout;
 document.getElementById('timeoutSec').addEventListener('change',e=>localStorage.setItem('openai_timeout',e.target.value));
 
@@ -543,16 +541,131 @@ async function checkServiceStatus(){
     try{const data=await callAPI(apiKey,`${from}駅から${to}駅で利用する路線の現在の運行情報をウェブ検索して簡潔にまとめて。異常なしなら「平常運転」。`,'low',2000);const txt=data.output_text||'取得できませんでした';banner.innerHTML='<strong>運行情報:</strong> '+escapeHtml(txt).replace(/\n/g,'<br>');banner.className=txt.includes('平常')?'info-banner show ok':'info-banner show';}catch{banner.textContent='運行情報の取得に失敗';}
 }
 
+let lastParsedRoutes = null; // Step2用に保持
+let verifyAbort = null; // 検証中断用
+
 async function runSearch(prompt,isRoute){
-    const apiKey=getApiKey();if(!apiKey)return;setLoading(true);
-    try{const data=await callAPI(apiKey,prompt,'medium',16000);lastResultText=data.output_text||'';
-        if(isRoute) displayRouteResult(data); else displayFallback(data);
-        document.getElementById('toolbar').style.display=currentMode==='route'?'flex':'none';updateFavBtn();
+    const apiKey=getApiKey();if(!apiKey)return;
+    // 前回の検証を中断
+    if(verifyAbort){verifyAbort.abort();verifyAbort=null;}
+    setLoading(true);
+    try{
+        const data=await callAPI(apiKey,prompt,'medium',16000);lastResultText=data.output_text||'';
+        if(isRoute){
+            displayRouteResult(data);
+            document.getElementById('toolbar').style.display='flex';updateFavBtn();
+            // Step2: バックグラウンド検証を自動発火
+            if(lastParsedRoutes) startVerification(apiKey, lastParsedRoutes);
+        } else {
+            displayFallback(data);
+            document.getElementById('toolbar').style.display='none';
+        }
         if(lastResultText)localStorage.setItem('cached_result',JSON.stringify({text:lastResultText,time:Date.now()}));
     }catch(err){showError(`エラー: ${err.message}`);}finally{setLoading(false);}
 }
 
-function setLoading(on){const btn=document.getElementById('searchBtn');if(on){const m=document.getElementById('modelSelect').value;btn.disabled=true;btn.innerHTML='<span class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;"></span> 検索中...';document.getElementById('results').innerHTML=`<div class="result-card loading"><div class="spinner"></div><p>${escapeHtml(m)} で検索中...</p></div>`;}else{btn.disabled=false;btn.textContent={route:'経路を検索',timetable:'時刻表を検索',commuter:'定期代を検索',status:'運行情報を取得'}[currentMode];}}
+// ===== Step2: バックグラウンド検証 =====
+async function startVerification(apiKey, routes){
+    // 検証バッジを表示
+    const badge = document.getElementById('verifyBadge');
+    if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> 検証中...';}
+
+    verifyAbort = new AbortController();
+    const p = lastSearchParams;
+    const routesSummary = JSON.stringify(routes, null, 0).slice(0, 3000);
+
+    const verifyPrompt = `あなたは日本の電車乗り換え案内の専門家です。以下の検索結果をウェブ検索で検証してください。
+
+【検索条件】${p.from}駅→${p.to}駅 ${p.date} ${p.time}
+
+【検索結果（検証対象）】
+${routesSummary}
+
+【指示】
+上記の結果をウェブ検索で検証し、修正が必要な場合のみ以下のJSON形式で回答してください。
+修正不要なら {"noChange": true} のみ返してください。
+
+修正がある場合:
+\`\`\`json
+{
+  "corrections": [
+    {
+      "routeIndex": 0,
+      "field": "修正箇所の説明",
+      "segmentIndex": 0,
+      "updates": { "修正するフィールド名": "修正値" }
+    }
+  ],
+  "additions": {
+    "serviceInfo": "最新の運行情報があれば"
+  }
+}
+\`\`\`
+
+特に以下を重点検証:
+- 番線（ホーム番号）の正確性
+- 中間駅の到着時刻
+- 運賃の正確性
+- 現在の遅延・運行情報`;
+
+    try{
+        const data = await callSearchAPI(apiKey, verifyPrompt, MODEL_VERIFY, 4000, verifyAbort.signal);
+        const text = data.output_text || '';
+        console.log('[Verify] response:', text.slice(0, 300));
+
+        // 結果をパース
+        let cleaned = text.replace(/【[^】]*】/g, '');
+        let result = null;
+        try {
+            const m = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
+            result = JSON.parse(m ? m[1] : cleaned.trim());
+        } catch { try { result = JSON.parse(cleaned.trim()); } catch {} }
+
+        if (!result) {
+            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ 検証済み';}
+            return;
+        }
+
+        if (result.noChange) {
+            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ 検証済み（修正なし）';}
+            return;
+        }
+
+        // 修正を適用
+        let correctionCount = 0;
+        if (result.corrections && result.corrections.length) {
+            result.corrections.forEach(c => {
+                const route = lastParsedRoutes.routes[c.routeIndex];
+                if (!route) return;
+                if (c.segmentIndex != null && route.segments && route.segments[c.segmentIndex] && c.updates) {
+                    Object.assign(route.segments[c.segmentIndex], c.updates);
+                    correctionCount++;
+                }
+                if (c.updates && c.updates.fare) { route.fare = c.updates.fare; correctionCount++; }
+                if (c.updates && c.updates.icFare) { route.icFare = c.updates.icFare; correctionCount++; }
+            });
+        }
+        if (result.additions && result.additions.serviceInfo) {
+            lastParsedRoutes.serviceInfo = result.additions.serviceInfo;
+            correctionCount++;
+        }
+
+        if (correctionCount > 0) {
+            // 修正を反映して再描画
+            displayRouteResultFromParsed(lastParsedRoutes);
+            if(badge){badge.className='verify-badge corrected';badge.innerHTML=`✓ ${correctionCount}件修正済み`;}
+        } else {
+            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ 検証済み';}
+        }
+    } catch(err) {
+        if(err.name==='AbortError') return;
+        console.log('[Verify] error:', err);
+        if(badge){badge.className='verify-badge done';badge.innerHTML='検証スキップ';}
+    }
+}
+
+
+function setLoading(on){const btn=document.getElementById('searchBtn');if(on){btn.disabled=true;btn.innerHTML='<span class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;"></span> 検索中...';document.getElementById('results').innerHTML='<div class="result-card loading"><div class="spinner"></div><p>検索中...</p></div>';document.getElementById('verifyBadge').style.display='none';}else{btn.disabled=false;btn.textContent={route:'経路を検索',timetable:'時刻表を検索',commuter:'定期代を検索',status:'運行情報を取得'}[currentMode];}}
 
 function searchShift(dir){if(!lastSearchParams)return;const[hh,mm]=lastSearchParams.time.split(':').map(Number);const d=new Date(2000,0,1,hh,mm+dir*5);const t=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;document.getElementById('time').value=t;searchRoute(t);}
 
@@ -772,33 +885,49 @@ function renderOdptTimetable(data, stationName) {
     return html;
 }
 
-// ===== OpenAI API =====
-const SEARCH_MODELS=['gpt-4o-search-preview','gpt-4o-mini-search-preview'];
-async function callAPI(apiKey,input,ctxSize,maxTok){
-    const model=document.getElementById('modelSelect').value;
-    const timeoutMs=(parseInt(document.getElementById('timeoutSec').value)||120)*1000;
-    const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeoutMs);
-    const isSearch=SEARCH_MODELS.includes(model);
-    console.log(`[API] model=${model} search=${isSearch} timeout=${timeoutMs}ms`);
-    try{
-        let res;
-        if(isSearch){
-            res=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
-                body:JSON.stringify({model,web_search_options:{user_location:{type:'approximate',approximate:{country:'JP'}}},messages:[{role:'user',content:input}],max_tokens:maxTok||16000}),signal:controller.signal});
-        }else{
-            res=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
-                body:JSON.stringify({model,tools:[{type:'web_search_preview',search_context_size:ctxSize||'medium',user_location:{type:'approximate',country:'JP'}}],input,max_output_tokens:maxTok||16000}),signal:controller.signal});
-        }
-        clearTimeout(timer);console.log(`[API] status=${res.status}`);
-        if(!res.ok){const e=await res.json().catch(()=>({}));console.error('[API] error:',e);throw new Error(e.error?.message||`API Error: ${res.status}`);}
-        const data=await res.json();console.log('[API] ok, length='+JSON.stringify(data).length);
-        if(isSearch){
-            data.output_text=data.choices?.[0]?.message?.content||'';
-            const ann=data.choices?.[0]?.message?.annotations||[];
-            data.output=[{type:'message',content:[{annotations:ann.map(a=>({type:'url_citation',url:a.url||a.url_citation?.url||'',title:a.title||a.url_citation?.title||''}))}]}];
-        }
+// ===== OpenAI API（ハイブリッド: mini-search固定 + 4o-search検証） =====
+const MODEL_FAST = 'gpt-4o-mini-search-preview';
+const MODEL_VERIFY = 'gpt-4o-search-preview';
+
+async function callAPI(apiKey, input, ctxSize, maxTok) {
+    return callSearchAPI(apiKey, input, MODEL_FAST, maxTok);
+}
+
+async function callSearchAPI(apiKey, input, model, maxTok, signal) {
+    const timeoutMs = (parseInt(document.getElementById('timeoutSec').value) || 120) * 1000;
+    const controller = new AbortController();
+    const extSignal = signal; // 外部からのsignal（検証用）
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    if (extSignal) extSignal.addEventListener('abort', () => controller.abort());
+
+    console.log(`[API] model=${model} timeout=${timeoutMs}ms`);
+    try {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
+            body: JSON.stringify({
+                model,
+                web_search_options: { user_location: { type: 'approximate', approximate: { country: 'JP' } } },
+                messages: [{ role: 'user', content: input }],
+                max_tokens: maxTok || 16000
+            }),
+            signal: controller.signal
+        });
+        clearTimeout(timer);
+        console.log(`[API] status=${res.status}`);
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API Error: ${res.status}`); }
+        const data = await res.json();
+        data.output_text = data.choices?.[0]?.message?.content || '';
+        const ann = data.choices?.[0]?.message?.annotations || [];
+        data.output = [{ type:'message', content:[{ annotations: ann.map(a => ({
+            type:'url_citation', url: a.url||a.url_citation?.url||'', title: a.title||a.url_citation?.title||''
+        }))}]}];
         return data;
-    }catch(err){clearTimeout(timer);if(err.name==='AbortError')throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。モデルやタイムアウト値を変更してみてください。`);throw err;}
+    } catch(err) {
+        clearTimeout(timer);
+        if (err.name === 'AbortError') throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。タイムアウト値を延長してください。`);
+        throw err;
+    }
 }
 
 // ===== ルート結果表示（ジョルダン風タイムライン） =====
@@ -832,8 +961,16 @@ function displayRouteResult(data){
         console.log('[Parse] JSON parse success, routes:', parsed.routes.length);
     } catch(e) { console.log('[Parse] JSON parse failed, fallback to markdown', e, '\ntext preview:', text.slice(0, 300)); }
 
-    if(!routes){displayFallback(data);return;}
+    if(!routes){lastParsedRoutes=null;displayFallback(data);return;}
+    lastParsedRoutes = routes;
+    renderRouteCards(routes, data);
+}
 
+function displayRouteResultFromParsed(routes){
+    renderRouteCards(routes, null);
+}
+
+function renderRouteCards(routes, data){
     const div=document.getElementById('results');
     let html='';
 
@@ -920,12 +1057,8 @@ function displayRouteResult(data){
         html+=`<div class="route-notes" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:10px 14px;margin-bottom:10px;"><p class="warn">${esc(routes.serviceInfo)}</p></div>`;
     }
 
-    // citations
-    html+=buildCitationsHtml(data);
-    // 使用モデル表示
-    const usedModel = document.getElementById('modelSelect').value;
-    const isSearch = SEARCH_MODELS.includes(usedModel);
-    html+=`<div style="text-align:right;font-size:12px;color:#64748b;margin-top:4px;">使用: ${esc(usedModel)} (${isSearch?'Chat Completions':'Responses'} API)</div>`;
+    if(data) html+=buildCitationsHtml(data);
+    html+=`<div style="text-align:right;font-size:12px;color:#64748b;margin-top:4px;">Step1: ${esc(MODEL_FAST)} → Step2: ${esc(MODEL_VERIFY)} で検証</div>`;
     div.innerHTML=html;
 }
 
