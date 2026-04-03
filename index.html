@@ -233,6 +233,11 @@
                 <label>タイムアウト（秒）</label>
                 <input type="number" id="timeoutSec" value="120" min="30" max="600" style="width:120px;" />
             </div>
+            <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(100,116,139,0.2);">
+                <label>ODPT APIキー（任意・無料登録）</label>
+                <input type="password" id="odptKey" placeholder="未設定でもPublic APIで動作します" />
+                <div class="sub-text">時刻表・運行情報をリアルタイムデータで補強。<a href="https://developer.odpt.org/signup" target="_blank" style="color:#38bdf8;">登録はこちら</a></div>
+            </div>
         </div>
     </div>
 
@@ -399,6 +404,9 @@ document.getElementById('modelSelect').addEventListener('change',e=>localStorage
 const savedTimeout=localStorage.getItem('openai_timeout'); if(savedTimeout)document.getElementById('timeoutSec').value=savedTimeout;
 document.getElementById('timeoutSec').addEventListener('change',e=>localStorage.setItem('openai_timeout',e.target.value));
 
+const savedOdpt=localStorage.getItem('odpt_key'); if(savedOdpt)document.getElementById('odptKey').value=savedOdpt;
+document.getElementById('odptKey').addEventListener('change',e=>localStorage.setItem('odpt_key',e.target.value.trim()));
+
 document.getElementById('optCommuterPass').addEventListener('change',e=>{document.getElementById('commuterPassSection').style.display=e.target.checked?'block':'none';});
 document.getElementById('specialTicket').addEventListener('change',e=>{document.getElementById('freepassSection').style.display=e.target.value==='freepass'?'block':'none';});
 loadHistory(); loadFavorites(); loadExpenses();
@@ -463,11 +471,75 @@ async function searchRoute(overrideTime){
         freepassName:document.getElementById('freepassName').value.trim()};
     addHistory(from,to); await runSearch(buildRoutePrompt(lastSearchParams),true);
 }
-async function searchTimetable(){const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');return;}const from=document.getElementById('fromStation').value.trim();if(!from){showError('駅名を入力してください。');return;}const to=document.getElementById('toStation').value.trim();await runSearch(`ウェブ検索で${from}駅${to?'から'+to+'方面':''}の本日(${document.getElementById('date').value})の時刻表を調べて。直近10本を表形式(時刻|路線|種別|行先|番線)で、始発終電も記載。日本語で回答。`);}
+async function searchTimetable(){
+    const from=document.getElementById('fromStation').value.trim();
+    if(!from){showError('駅名を入力してください。');return;}
+    const to=document.getElementById('toStation').value.trim();
+    setLoading(true);
+    try {
+        // ODPT APIで時刻表を取得
+        const odptData = await fetchOdptStationTimetable(from);
+        const odptHtml = renderOdptTimetable(odptData, from);
+        if (odptHtml) {
+            document.getElementById('results').innerHTML = odptHtml;
+            document.getElementById('toolbar').style.display = 'none';
+            return;
+        }
+    } catch {}
+    // ODPTで取得できなかった場合はAIにフォールバック
+    const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');setLoading(false);return;}
+    try {
+        const data=await callAPI(apiKey,`ウェブ検索で${from}駅${to?'から'+to+'方面':''}の本日(${document.getElementById('date').value})の時刻表を調べて。直近10本を表形式(時刻|路線|種別|行先|番線)で、始発終電も記載。日本語で回答。`,'medium',16000);
+        lastResultText=data.output_text||'';displayFallback(data);document.getElementById('toolbar').style.display='none';
+    } catch(err){showError(`エラー: ${err.message}`);}
+    finally{setLoading(false);}
+}
 async function searchCommuter(){const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');return;}const from=document.getElementById('fromStation').value.trim(),to=document.getElementById('toStation').value.trim();if(!from||!to){showError('出発駅と到着駅を入力してください。');return;}await runSearch(`ウェブ検索で${from}駅〜${to}駅の通勤定期代を調べて。表形式(ルート|1ヶ月|3ヶ月|6ヶ月)で複数ルート提示。通学定期(大学)も併記。日本語で回答。`);}
-async function checkServiceStatus(){const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');return;}const from=document.getElementById('fromStation').value.trim(),to=document.getElementById('toStation').value.trim();
-    if(currentMode==='status'){setLoading(true);const area=from||to||'首都圏';try{const data=await callAPI(apiKey,`ウェブ検索で${area}エリアの鉄道の最新運行情報をまとめて。遅延・運休路線をリスト、異常なしは「平常運転」。日本語で回答。`,'medium',8000);lastResultText=data.output_text||'';displayFallback(data);document.getElementById('toolbar').style.display='none';}catch(err){showError(`エラー: ${err.message}`);}finally{setLoading(false);}return;}
+async function checkServiceStatus(){
+    const from=document.getElementById('fromStation').value.trim(),to=document.getElementById('toStation').value.trim();
+
+    if(currentMode==='status'){
+        setLoading(true);
+        try {
+            // ODPT APIで運行情報を取得
+            const odptData = await fetchOdptTrainInfo();
+            const odptHtml = renderOdptTrainInfo(odptData);
+            if (odptHtml) {
+                document.getElementById('results').innerHTML = odptHtml;
+                document.getElementById('toolbar').style.display = 'none';
+                setLoading(false);
+                return;
+            }
+        } catch {}
+        // ODPTで取得できなかった場合はAIにフォールバック
+        const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');setLoading(false);return;}
+        const area=from||to||'首都圏';
+        try{const data=await callAPI(apiKey,`ウェブ検索で${area}エリアの鉄道の最新運行情報をまとめて。遅延・運休路線をリスト、異常なしは「平常運転」。日本語で回答。`,'medium',8000);lastResultText=data.output_text||'';displayFallback(data);document.getElementById('toolbar').style.display='none';}catch(err){showError(`エラー: ${err.message}`);}finally{setLoading(false);}
+        return;
+    }
+    // ツールバーからの運行情報チェック（バナー表示）
     const banner=document.getElementById('infoBanner');banner.className='info-banner show';banner.textContent='運行情報を確認中...';
+    try {
+        // まずODPTを試行
+        const odptData = await fetchOdptTrainInfo();
+        if (odptData && odptData.length) {
+            const alerts = odptData.filter(i => i['odpt:trainInformationText'] && !['平常運転','平常'].includes(i['odpt:trainInformationText']?.trim().slice(0,4)));
+            if (alerts.length === 0) {
+                banner.innerHTML = '<strong>運行情報:</strong> 全路線 平常運転（ODPT）';
+                banner.className = 'info-banner show ok';
+            } else {
+                banner.innerHTML = '<strong>運行情報（ODPT）:</strong><br>' + alerts.slice(0,5).map(a => {
+                    const line = a['odpt:railway']?.split('.').pop()||'';
+                    const text = a['odpt:trainInformationText']||'';
+                    return `${esc(line)}: ${esc(text.slice(0,80))}`;
+                }).join('<br>');
+                banner.className = 'info-banner show';
+            }
+            return;
+        }
+    } catch {}
+    // ODPTがダメならAIフォールバック
+    const apiKey=getApiKey();if(!apiKey){banner.textContent='APIキー未設定';return;}
     try{const data=await callAPI(apiKey,`${from}駅から${to}駅で利用する路線の現在の運行情報をウェブ検索して簡潔にまとめて。異常なしなら「平常運転」。`,'low',2000);const txt=data.output_text||'取得できませんでした';banner.innerHTML='<strong>運行情報:</strong> '+escapeHtml(txt).replace(/\n/g,'<br>');banner.className=txt.includes('平常')?'info-banner show ok':'info-banner show';}catch{banner.textContent='運行情報の取得に失敗';}
 }
 
@@ -559,7 +631,148 @@ ${wm[p.walkText]||''}
 最大3ルート。各rideセグメントのstopsには出発駅・到着駅を除く全ての途中停車駅と各駅の到着予想時刻を含めてください。番線はウェブ検索で調べ、不明なら"要確認"。`;
 }
 
-// ===== API =====
+// ===== ODPT API =====
+const ODPT_PUBLIC = 'https://api-public.odpt.org/api/v4/';
+const ODPT_AUTH = 'https://api.odpt.org/api/v4/';
+// 駅名→ODPT事業者/路線マッピング（主要事業者）
+const ODPT_OPERATORS = ['JR-East','TokyoMetro','Toei','Odakyu','Keio','Tokyu','Seibu','Tobu','Keikyu','Keisei','TXRailway'];
+
+function getOdptBase() {
+    const key = document.getElementById('odptKey').value.trim();
+    return key ? ODPT_AUTH : ODPT_PUBLIC;
+}
+function odptKeyParam() {
+    const key = document.getElementById('odptKey').value.trim();
+    return key ? `&acl:consumerKey=${encodeURIComponent(key)}` : '';
+}
+
+// ODPT運行情報取得
+async function fetchOdptTrainInfo() {
+    try {
+        const url = `${getOdptBase()}odpt:TrainInformation?${odptKeyParam()}`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+        if (!res.ok) return null;
+        return await res.json();
+    } catch { return null; }
+}
+
+// ODPT駅時刻表取得（駅名で検索）
+async function fetchOdptStationTimetable(stationName) {
+    try {
+        // まず駅を検索
+        const stUrl = `${getOdptBase()}odpt:Station?dc:title=${encodeURIComponent(stationName)}${odptKeyParam()}`;
+        const stRes = await fetch(stUrl, { signal: AbortSignal.timeout(10000) });
+        if (!stRes.ok) return null;
+        const stations = await stRes.json();
+        if (!stations.length) return null;
+
+        // 見つかった駅のIDで時刻表取得
+        const results = [];
+        // 最大3路線まで取得
+        for (const st of stations.slice(0, 3)) {
+            const ttUrl = `${getOdptBase()}odpt:StationTimetable?odpt:station=${encodeURIComponent(st['owl:sameAs'])}${odptKeyParam()}`;
+            const ttRes = await fetch(ttUrl, { signal: AbortSignal.timeout(10000) });
+            if (ttRes.ok) {
+                const tt = await ttRes.json();
+                results.push(...tt);
+            }
+        }
+        return results.length ? results : null;
+    } catch { return null; }
+}
+
+// ODPT運行情報を整形表示
+function renderOdptTrainInfo(data, filterArea) {
+    if (!data || !data.length) return null;
+    // エリアフィルタ（駅名に関連する事業者のみ表示、指定なしなら全部）
+    let items = data;
+    const now = new Date();
+
+    let html = '<div class="result-card"><h3>運行情報（ODPT リアルタイム）</h3>';
+    // 遅延/運休ありのみ
+    const alerts = items.filter(i => i['odpt:trainInformationStatus'] && !['平常運転','平常'].includes(i['odpt:trainInformationText']?.trim()));
+    const normal = items.length - alerts.length;
+
+    if (alerts.length === 0) {
+        html += '<div class="result-content"><p style="color:#34d399;font-weight:600;">全路線 平常運転</p>';
+        html += `<p style="color:#94a3b8;">対象: ${items.length}路線を確認済み</p></div>`;
+    } else {
+        html += '<div class="result-content">';
+        alerts.forEach(a => {
+            const line = a['odpt:railway']?.split('.').pop() || '不明';
+            const op = a['odpt:operator']?.split('.').pop() || '';
+            const text = a['odpt:trainInformationText'] || '';
+            const status = a['odpt:trainInformationStatus']?.['ja'] || a['odpt:trainInformationStatus'] || '';
+            const cause = a['odpt:trainInformationCause']?.['ja'] || a['odpt:trainInformationCause'] || '';
+            html += `<div style="padding:8px 0;border-bottom:1px solid rgba(100,116,139,0.15);">`;
+            html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">`;
+            const code = getLineCode(line);
+            const color = getLineColor(line);
+            if (code) html += `<span class="line-badge" style="background:${color};font-size:10px;min-width:24px;height:24px;">${esc(code)}</span>`;
+            html += `<strong style="color:#f1f5f9;">${esc(op)} ${esc(line)}</strong>`;
+            if (status) html += `<span class="route-badge" style="background:rgba(239,68,68,0.15);color:#fca5a5;">${esc(status)}</span>`;
+            html += `</div>`;
+            if (cause) html += `<div style="font-size:13px;color:#fbbf24;">原因: ${esc(cause)}</div>`;
+            html += `<div style="font-size:13px;color:#cbd5e1;">${esc(text).slice(0, 200)}</div>`;
+            html += `</div>`;
+        });
+        if (normal > 0) html += `<p style="color:#34d399;margin-top:8px;">他 ${normal}路線は平常運転</p>`;
+        html += '</div>';
+    }
+    html += `<div style="text-align:right;font-size:12px;color:#64748b;padding:6px 16px;">データ: ODPT公共交通オープンデータ</div></div>`;
+    return html;
+}
+
+// ODPT時刻表を整形表示
+function renderOdptTimetable(data, stationName) {
+    if (!data || !data.length) return null;
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+
+    let html = `<div class="result-card"><h3>${esc(stationName)}駅 時刻表（ODPT リアルタイム）</h3><div class="result-content">`;
+
+    data.forEach(tt => {
+        const railway = tt['odpt:railway']?.split('.').pop() || '';
+        const dir = tt['odpt:railDirection']?.split('.').pop() || '';
+        const calendar = tt['odpt:calendar']?.split('.').pop() || '';
+        const objects = tt['odpt:stationTimetableObject'] || [];
+        if (!objects.length) return;
+
+        const color = getLineColor(railway);
+        const code = getLineCode(railway);
+
+        // 現在時刻以降の発車を10件取得
+        const upcoming = objects.filter(o => {
+            if (!o['odpt:departureTime']) return false;
+            const [h, m] = o['odpt:departureTime'].split(':').map(Number);
+            return h * 60 + m >= nowMin;
+        }).slice(0, 10);
+
+        if (!upcoming.length) return;
+
+        html += `<div style="margin-bottom:14px;">`;
+        html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">`;
+        if (code) html += `<span class="line-badge" style="background:${color};">${esc(code)}</span>`;
+        html += `<strong style="color:${color};">${esc(railway)}</strong>`;
+        if (dir) html += `<span style="color:#94a3b8;font-size:13px;">${esc(dir)}方面</span>`;
+        if (calendar) html += `<span style="color:#64748b;font-size:12px;">(${esc(calendar)})</span>`;
+        html += `</div>`;
+
+        html += '<table><tr><th>発車</th><th>種別</th><th>行先</th></tr>';
+        upcoming.forEach(o => {
+            const time = o['odpt:departureTime'] || '';
+            const type = o['odpt:trainType']?.split('.').pop() || '';
+            const dest = (o['odpt:destinationStation'] || []).map(d => d.split('.').pop()).join('・') || '';
+            html += `<tr><td style="font-weight:700;font-variant-numeric:tabular-nums;">${esc(time)}</td><td>${esc(type)}</td><td>${esc(dest)}</td></tr>`;
+        });
+        html += '</table></div>';
+    });
+
+    html += `</div><div style="text-align:right;font-size:12px;color:#64748b;padding:6px 16px;">データ: ODPT公共交通オープンデータ</div></div>`;
+    return html;
+}
+
+// ===== OpenAI API =====
 const SEARCH_MODELS=['gpt-4o-search-preview','gpt-4o-mini-search-preview'];
 async function callAPI(apiKey,input,ctxSize,maxTok){
     const model=document.getElementById('modelSelect').value;
