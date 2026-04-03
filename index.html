@@ -578,7 +578,7 @@ async function runSearch(prompt,isRoute){
 // ===== Step2フォールバック: 4o-searchでフル再検索（JSON失敗時） =====
 async function startFullFallback(apiKey, prompt){
     const badge = document.getElementById('verifyBadge');
-    if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> 高精度モデルで再検索中...';}
+    if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> 別のAIで再検索中...';}
 
     verifyAbort = new AbortController();
     try{
@@ -588,7 +588,7 @@ async function startFullFallback(apiKey, prompt){
         displayRouteResult(data);
 
         if(lastParsedRoutes){
-            if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ 高精度モデルで再取得済み';}
+            if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ 別のAIで再取得済み';}
             console.log('[Step2-Fallback] JSON成功 → タイムラインUI更新');
         } else {
             // 4o-searchでもJSON失敗 → Markdownのまま
@@ -606,7 +606,7 @@ async function startFullFallback(apiKey, prompt){
 async function startVerification(apiKey, routes){
     // 検証バッジを表示
     const badge = document.getElementById('verifyBadge');
-    if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> 検証中...';}
+    if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> 別のAIで検証中...';}
 
     verifyAbort = new AbortController();
     const p = lastSearchParams;
@@ -660,7 +660,7 @@ ${routesSummary}
         } catch { try { result = JSON.parse(cleaned.trim()); } catch {} }
 
         if (!result) {
-            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ 検証済み';}
+            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ 別のAIで検証済み';}
             return;
         }
 
@@ -691,9 +691,9 @@ ${routesSummary}
         if (correctionCount > 0) {
             // 修正を反映して再描画
             displayRouteResultFromParsed(lastParsedRoutes);
-            if(badge){badge.className='verify-badge corrected';badge.innerHTML=`✓ ${correctionCount}件修正済み`;}
+            if(badge){badge.className='verify-badge corrected';badge.innerHTML=`✓ 別のAIで${correctionCount}件修正済み`;}
         } else {
-            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ 検証済み';}
+            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ 別のAIで検証済み';}
         }
     } catch(err) {
         if(err.name==='AbortError') return;
