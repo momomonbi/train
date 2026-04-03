@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><title>API Test</title></head>
+<body style="font-family:monospace;background:#1e293b;color:#e2e8f0;padding:20px;">
+<h2>API呼び出しテスト（修正版）</h2>
+<p>APIキー: <input type="password" id="key" style="width:400px;" /></p>
+<button onclick="runTest()">川間→大宮 テスト実行</button>
+<pre id="out" style="background:#0f172a;padding:16px;border-radius:8px;white-space:pre-wrap;max-height:600px;overflow:auto;"></pre>
+
+<script>
+async function runTest(){
+    const key = document.getElementById('key').value.trim();
+    if(!key){alert('APIキーを入力');return;}
+    const out = document.getElementById('out');
+    out.textContent = '送信中...\n';
+
+    const prompt = '「川間駅から大宮駅」の電車での行き方をウェブ検索で調べてください。路線名・乗換駅・所要時間を簡潔に回答してください。';
+
+    // Test 1: gpt-5.4-mini + web_search（正式版ツール）
+    out.textContent += '\n=== Test1: gpt-5.4-mini + web_search (Responses API) ===\n';
+    try {
+        const res1 = await fetch('https://api.openai.com/v1/responses', {
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+            body:JSON.stringify({
+                model:'gpt-5.4-mini',
+                tools:[{type:'web_search',search_context_size:'high',user_location:{type:'approximate',country:'JP'}}],
+                input:prompt, max_output_tokens:4000
+            })
+        });
+        out.textContent += `status: ${res1.status}\n`;
+        const d1 = await res1.json();
+        out.textContent += `output_text: "${(d1.output_text||'').slice(0,500)}"\n`;
+        if(d1.error) out.textContent += `error: ${JSON.stringify(d1.error)}\n`;
+    } catch(e) { out.textContent += `Error: ${e.message}\n`; }
+
+    // Test 2: gpt-5.4 + web_search（検証用モデル）
+    out.textContent += '\n=== Test2: gpt-5.4 + web_search (Responses API) ===\n';
+    try {
+        const res2 = await fetch('https://api.openai.com/v1/responses', {
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+            body:JSON.stringify({
+                model:'gpt-5.4',
+                tools:[{type:'web_search',search_context_size:'high',user_location:{type:'approximate',country:'JP'}}],
+                input:prompt, max_output_tokens:4000
+            })
+        });
+        out.textContent += `status: ${res2.status}\n`;
+        const d2 = await res2.json();
+        out.textContent += `output_text: "${(d2.output_text||'').slice(0,500)}"\n`;
+        if(d2.error) out.textContent += `error: ${JSON.stringify(d2.error)}\n`;
+    } catch(e) { out.textContent += `Error: ${e.message}\n`; }
+
+    // Test 3: gpt-4o-mini-search-preview (Chat Completions) - フォールバック
+    out.textContent += '\n=== Test3: gpt-4o-mini-search-preview (Chat Completions) ===\n';
+    try {
+        const res3 = await fetch('https://api.openai.com/v1/chat/completions', {
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+            body:JSON.stringify({
+                model:'gpt-4o-mini-search-preview',
+                web_search_options:{user_location:{type:'approximate',approximate:{country:'JP'}}},
+                messages:[{role:'user',content:prompt}],
+                max_tokens:4000
+            })
+        });
+        out.textContent += `status: ${res3.status}\n`;
+        const d3 = await res3.json();
+        const content = d3.choices?.[0]?.message?.content || '';
+        out.textContent += `content: "${content.slice(0,500)}"\n`;
+        if(d3.error) out.textContent += `error: ${JSON.stringify(d3.error)}\n`;
+    } catch(e) { out.textContent += `Error: ${e.message}\n`; }
+
+    out.textContent += '\n=== テスト完了 ===\n';
+}
+</script>
+</body>
+</html>

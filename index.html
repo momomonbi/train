@@ -236,7 +236,7 @@
             <div style="margin-top:8px;">
                 <label>検索方式</label>
                 <div class="sub-text" style="line-height:1.6;">
-                    Step1: <strong style="color:#60a5fa;">GPT-5.3 Instant</strong>（メイン検索）<br>
+                    Step1: <strong style="color:#60a5fa;">GPT-5.4 mini</strong>（メイン検索）<br>
                     Step2: <strong style="color:#34d399;">GPT-5.4 Thinking</strong>（バックグラウンド検証・修正）
                 </div>
             </div>
@@ -1132,8 +1132,8 @@ function renderOdptTimetable(data, stationName) {
     return html;
 }
 
-// ===== OpenAI API（ハイブリッド: GPT-5.3 Instant(メイン検索) + GPT-5.4 Thinking(検証)） =====
-const MODEL_FAST = 'gpt-5.3-chat-latest';
+// ===== OpenAI API（ハイブリッド: GPT-5.4 mini(メイン検索) + GPT-5.4 Thinking(検証)） =====
+const MODEL_FAST = 'gpt-5.4-mini';
 const MODEL_VERIFY = 'gpt-5.4';
 
 async function callAPI(apiKey, input, ctxSize, maxTok) {
@@ -1160,7 +1160,7 @@ async function callResponsesAPI(apiKey, input, model, maxTok, signal, searchCtxS
     try {
         const body = {
             model,
-            tools: [{ type:'web_search_preview', search_context_size: searchCtxSize || 'medium', user_location:{type:'approximate',country:'JP'} }],
+            tools: [{ type:'web_search', search_context_size: searchCtxSize || 'medium', user_location:{type:'approximate',country:'JP'} }],
             input, max_output_tokens: maxTok || 16000
         };
         if (reasoningEffort) body.reasoning = { effort: reasoningEffort };
@@ -1372,7 +1372,7 @@ function renderRouteCards(routes, data){
     }
 
     if(data) html+=buildCitationsHtml(data);
-    html+=`<div style="text-align:right;font-size:12px;color:#64748b;margin-top:4px;">Step1: GPT-5.3 Instant → Step2: GPT-5.4 Thinking で検証</div>`;
+    html+=`<div style="text-align:right;font-size:12px;color:#64748b;margin-top:4px;">Step1: GPT-5.4 mini → Step2: GPT-5.4 Thinking で検証</div>`;
     div.innerHTML=html;
 }
 
