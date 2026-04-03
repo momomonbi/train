@@ -628,9 +628,12 @@ async function runSegmentedSearch(apiKey, params, stations){
         renderRouteCards(combined, fakeData);
         document.getElementById('toolbar').style.display='flex';updateFavBtn();
 
-        // 検証バッジ
-        const badge = document.getElementById('verifyBadge');
-        if(badge){badge.style.display='inline-flex';badge.className='verify-badge done';badge.innerHTML='✓ 区間分割検索完了';}
+        // キャッシュ保存
+        if(lastResultText)localStorage.setItem('cached_result',JSON.stringify({text:lastResultText,time:Date.now(),routes:lastParsedRoutes||null}));
+
+        // Step2: gpt-5.4で検証
+        console.log('[Segmented] → Step2検証を開始');
+        startVerification(apiKey, combined);
     }catch(err){
         console.log('[Segmented] エラー:', err);
         showError(`エラー: ${err.message}`);
