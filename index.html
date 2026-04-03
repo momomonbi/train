@@ -762,7 +762,7 @@ async function startFullFallback(apiKey, prompt){
 async function startVerification(apiKey, routes){
     // 検証バッジを表示
     const badge = document.getElementById('verifyBadge');
-    if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> GPT-5.4 Thinkingで検証中...';}
+    if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> GPT-5.4 miniで検証中...';}
 
     verifyAbort = new AbortController();
     const p = lastSearchParams;
@@ -817,7 +817,7 @@ ${routesSummary}
         } catch { try { result = JSON.parse(cleaned.trim()); } catch {} }
 
         if (!result) {
-            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ GPT-5.4 Thinkingで検証済み';}
+            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ GPT-5.4 miniで検証済み';}
             return;
         }
 
@@ -850,7 +850,7 @@ ${routesSummary}
             displayRouteResultFromParsed(lastParsedRoutes);
             if(badge){badge.className='verify-badge corrected';badge.innerHTML=`✓ GPT-5.4 Thinkingで${correctionCount}件修正済み`;}
         } else {
-            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ GPT-5.4 Thinkingで検証済み';}
+            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ GPT-5.4 miniで検証済み';}
         }
     } catch(err) {
         if(err.name==='AbortError') return;
