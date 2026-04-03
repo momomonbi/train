@@ -193,7 +193,7 @@
 
         /* 混雑度バー */
         .crowd-bar { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; font-size: 12px; vertical-align: middle; }
-        .crowd-bar .crowd-icons { display: inline-flex; gap: -2px; letter-spacing: -4px; }
+        .crowd-bar .crowd-icons { display: inline-flex; margin-left: -2px; letter-spacing: -6px; }
         .crowd-bar .ci { font-size: 14px; opacity: 0.2; }
         .crowd-bar .ci.on { opacity: 1; }
         .crowd-bar .crowd-label { margin-left: 3px; font-weight: 600; }
@@ -202,6 +202,12 @@
         .crowd-3 { background: rgba(251,191,36,0.1); color: #fbbf24; }
         .crowd-4 { background: rgba(249,115,22,0.1); color: #f97316; }
         .crowd-5 { background: rgba(239,68,68,0.12); color: #ef4444; }
+
+        /* 遅延バッジ */
+        .tl-delay { display: flex; align-items: center; gap: 6px; padding: 6px 12px; margin: 4px 0; background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.25); border-radius: 8px; }
+        .tl-delay-icon { color: #f97316; font-size: 16px; flex-shrink: 0; }
+        .tl-delay-text { font-size: 13px; font-weight: 600; color: #f97316; }
+        .tl-delay-reason { font-size: 12px; color: #fb923c; font-weight: 400; margin-left: 4px; }
 
         /* 検証バッジ */
         .verify-badge { display: none; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
@@ -937,7 +943,8 @@ ${wm[p.walkText]||''}${viaInstruction}
           "stops": [
             {"name": "途中駅名", "time": "HH:MM"},
             {"name": "途中駅名", "time": "HH:MM"}
-          ]${optFields}
+          ]${optFields},
+          "delay": null または {"minutes": 遅延分数, "reason": "遅延理由（簡潔に）"}
         },
         {
           "type": "transfer",
@@ -952,7 +959,11 @@ ${wm[p.walkText]||''}${viaInstruction}
 }
 \`\`\`
 
-最大3ルート。各rideセグメントのstopsには出発駅・到着駅を除く全ての途中停車駅と各駅の到着予想時刻を含めてください。番線はウェブ検索で調べ、不明なら"要確認"。${p.crowding?'\n\n【混雑度について】各rideセグメントに必ず"crowding"フィールド（1〜5の整数）を含めてください。時間帯・路線・方面から推定してください。朝ラッシュ（7:30-9:30）や夕ラッシュ（17:00-20:00）の都心方面は4〜5、逆方向や日中は1〜3が目安です。':''}`;
+最大3ルート。各rideセグメントのstopsには出発駅・到着駅を除く全ての途中停車駅と各駅の到着予想時刻を含めてください。番線はウェブ検索で調べ、不明なら"要確認"。
+
+【混雑度について】各rideセグメントに必ず"crowding"フィールド（1〜5の整数）を含めてください。時間帯・路線・方面から推定してください。朝ラッシュ（7:30-9:30）や夕ラッシュ（17:00-20:00）の都心方面は4〜5、逆方向や日中は1〜3が目安です。
+
+【遅延情報について】各rideセグメントの路線に現在遅延・運転見合わせがあるかウェブ検索で確認してください。遅延がある場合は"delay": {"minutes": 遅延分数, "reason": "理由"}を設定。遅延がなければ"delay": nullとしてください。`;
 }
 
 // ===== ODPT API =====
@@ -1245,6 +1256,7 @@ function renderRouteCards(routes, data){
                             ${seg.doorSide?`<span>ドア: ${esc(seg.doorSide)}</span>`:''}
                             ${seg.crowding?renderCrowding(seg.crowding):''}
                         </div>
+                        ${seg.delay?`<div class="tl-delay"><span class="tl-delay-icon">▲</span><span class="tl-delay-text">遅延${seg.delay.minutes?seg.delay.minutes+'分':''}</span><span class="tl-delay-reason">${esc(seg.delay.reason||'')}</span></div>`:''}
                         ${seg.stops&&seg.stops.length?`
                         <div class="tl-stops-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">
                             <span class="arrow">&#9654;</span> ${seg.stops.length}駅
