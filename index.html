@@ -561,9 +561,25 @@ async function runSearch(prompt,isRoute){
     if(verifyAbort){verifyAbort.abort();verifyAbort=null;}
     setLoading(true);
     try{
-        // Step1: mini-searchで高速取得
-        console.log('[Step1] mini-search開始');
-        const data=await callAPI(apiKey,prompt,'medium',16000);lastResultText=data.output_text||'';
+        // Step1: メイン検索
+        console.log('[Step1] 検索開始');
+        let data=await callAPI(apiKey,prompt,'high',16000);lastResultText=data.output_text||'';
+        console.log('[Step1] output_text length:', lastResultText.length, 'preview:', lastResultText.slice(0,300));
+
+        // Step1で空レスポンスの場合、簡略プロンプトでリトライ
+        if(isRoute && !lastResultText.trim()){
+            console.log('[Step1] 空レスポンス → 簡略プロンプトでリトライ');
+            const p = lastSearchParams;
+            const simplePrompt = `「${p.from}駅から${p.to}駅${p.via?' 経由'+p.via:''}」の電車での行き方をウェブ検索で調べて、乗り換えルートをJSON形式で回答してください。
+検索クエリ例: 「${p.from}駅から${p.to}駅 乗り換え案内」
+
+以下のJSON形式で回答:
+\`\`\`json
+{"routes":[{"departure":"HH:MM","arrival":"HH:MM","duration":"所要時間","transfers":乗換回数,"fare":"運賃","icFare":"IC運賃","expressFare":null,"segments":[{"type":"ride","from":"駅名","fromPlatform":"番線","to":"駅名","toPlatform":"番線","line":"路線名","lineCode":"","direction":"方面","trainType":"種別","departureTime":"HH:MM","arrivalTime":"HH:MM","stops":[]},{"type":"transfer","station":"乗換駅名","minutes":5}],"notes":[]}],"serviceInfo":"平常運転"}
+\`\`\``;
+            data=await callAPI(apiKey,simplePrompt,'high',16000);lastResultText=data.output_text||'';
+            console.log('[Step1-Retry] output_text length:', lastResultText.length, 'preview:', lastResultText.slice(0,300));
+        }
 
         if(isRoute){
             displayRouteResult(data);
