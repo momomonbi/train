@@ -191,6 +191,18 @@
         .settings-panel { display: none; margin-bottom: 10px; }
         .settings-panel.open { display: block; }
 
+        /* 混雑度バー */
+        .crowd-bar { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; font-size: 12px; vertical-align: middle; }
+        .crowd-bar .crowd-icons { display: inline-flex; gap: 1px; }
+        .crowd-bar .ci { font-size: 14px; opacity: 0.2; }
+        .crowd-bar .ci.on { opacity: 1; }
+        .crowd-bar .crowd-label { margin-left: 3px; font-weight: 600; }
+        .crowd-1 { background: rgba(52,211,153,0.1); color: #34d399; }
+        .crowd-2 { background: rgba(96,165,250,0.1); color: #60a5fa; }
+        .crowd-3 { background: rgba(251,191,36,0.1); color: #fbbf24; }
+        .crowd-4 { background: rgba(249,115,22,0.1); color: #f97316; }
+        .crowd-5 { background: rgba(239,68,68,0.12); color: #ef4444; }
+
         /* 検証バッジ */
         .verify-badge { display: none; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
         .verify-badge.verifying { display: inline-flex; background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.25); color: #93c5fd; }
@@ -760,7 +772,7 @@ function buildRoutePrompt(p){
     let optFields = '';
     if(p.boardingPos) optFields += ', "boardingPosition": "乗車位置（前寄り等）"';
     if(p.doorSide) optFields += ', "doorSide": "ドア開方向（左/右）"';
-    if(p.crowding) optFields += ', "crowding": "混雑度"';
+    if(p.crowding) optFields += ', "crowding": 1〜5の数値（1=空いている,2=余裕あり,3=普通,4=混雑,5=非常に混雑）';
 
     return `あなたは日本の電車乗り換え案内の専門家です。ウェブ検索を使って最新の経路を調べてください。
 
@@ -1084,7 +1096,7 @@ function renderRouteCards(routes, data){
                             <span>${esc(seg.direction||'')}</span>
                             ${seg.boardingPosition?`<span>乗車位置: ${esc(seg.boardingPosition)}</span>`:''}
                             ${seg.doorSide?`<span>ドア: ${esc(seg.doorSide)}</span>`:''}
-                            ${seg.crowding?`<span>混雑: ${esc(seg.crowding)}</span>`:''}
+                            ${seg.crowding?renderCrowding(seg.crowding):''}
                         </div>
                         ${seg.stops&&seg.stops.length?`
                         <div class="tl-stops-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">
@@ -1154,6 +1166,14 @@ function buildCitationsHtml(data){
 function mdToHtml(md){if(!md)return '<p>結果を取得できませんでした。</p>';let h=escapeHtml(md);h=h.replace(/```[\s\S]*?```/g,m=>{const c=m.replace(/```\w*\n?/,'').replace(/```$/,'');return `<pre><code>${c}</code></pre>`;});h=h.replace(/((\|[^\n]+\|\n)+)/g,tbl=>{const rows=tbl.trim().split('\n');if(rows.length<2)return tbl;let t='<table>';rows.forEach((r,i)=>{if(r.match(/^\|[\s\-:|]+\|$/))return;const cells=r.split('|').filter((_,j,a)=>j>0&&j<a.length-1);const tag=i===0?'th':'td';t+='<tr>'+cells.map(c=>`<${tag}>${c.trim()}</${tag}>`).join('')+'</tr>';});return t+'</table>';});h=h.replace(/^####\s(.+)$/gm,'<h4>$1</h4>');h=h.replace(/^###\s(.+)$/gm,'<h3>$1</h3>');h=h.replace(/^##\s(.+)$/gm,'<h2>$1</h2>');h=h.replace(/^#\s(.+)$/gm,'<h1>$1</h1>');h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');h=h.replace(/^- (.+)$/gm,'<li>$1</li>');h=h.replace(/^(\d+)\.\s(.+)$/gm,'<li>$2</li>');h=h.replace(/((<li>.*<\/li>\n?)+)/g,'<ul>$1</ul>');h=h.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');h=h.replace(/\n\n/g,'</p><p>');h='<p>'+h+'</p>';h=h.replace(/<p>\s*<\/p>/g,'');h=h.replace(/<p>\s*(<h[1-6]>)/g,'$1').replace(/(<\/h[1-6]>)\s*<\/p>/g,'$1');h=h.replace(/<p>\s*(<table>)/g,'$1').replace(/(<\/table>)\s*<\/p>/g,'$1');h=h.replace(/<p>\s*(<ul>)/g,'$1').replace(/(<\/ul>)\s*<\/p>/g,'$1');return h;}
 function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
 function esc(s){return s==null?'':escapeHtml(String(s));}
+
+// 混雑度ビジュアル（1〜5段階、人型アイコン）
+function renderCrowding(val){
+    const n=Math.max(1,Math.min(5,parseInt(val)||3));
+    const labels=['','空いている','余裕あり','普通','混雑','非常に混雑'];
+    const icons=Array.from({length:5},(_,i)=>`<span class="ci${i<n?' on':''}">\u{1F9CD}</span>`).join('');
+    return `<span class="crowd-bar crowd-${n}"><span class="crowd-icons">${icons}</span><span class="crowd-label">${labels[n]}</span></span>`;
+}
 
 // ===== 徒歩ナビ・コピー・共有 =====
 function openWalkNav(){if(!lastSearchParams)return;window.open(`https://www.google.com/maps/dir/${encodeURIComponent(lastSearchParams.from+'駅')}/${encodeURIComponent(lastSearchParams.to+'駅')}/@?dirflg=w`,'_blank');}
