@@ -1,1530 +1,1502 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>電車乗り換え検索</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Meiryo', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
-            min-height: 100vh; color: #e2e8f0;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Meiryo",
+          sans-serif;
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+        min-height: 100vh;
+        color: #e2e8f0;
+      }
+      .container {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 14px;
+      }
+      header {
+        text-align: center;
+        padding: 18px 0 12px;
+      }
+      header h1 {
+        font-size: 22px;
+        background: linear-gradient(90deg, #60a5fa, #34d399);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      header p {
+        font-size: 13px;
+        color: #94a3b8;
+        margin-top: 2px;
+      }
+
+      .card {
+        background: rgba(30, 41, 59, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(100, 116, 139, 0.25);
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 10px;
+      }
+
+      label {
+        display: block;
+        font-size: 13px;
+        color: #94a3b8;
+        margin-bottom: 2px;
+        font-weight: 600;
+      }
+      input[type="text"],
+      input[type="password"],
+      input[type="number"],
+      input[type="date"],
+      input[type="time"],
+      select,
+      textarea {
+        width: 100%;
+        padding: 9px 11px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(100, 116, 139, 0.35);
+        border-radius: 9px;
+        color: #e2e8f0;
+        font-size: 16px;
+        outline: none;
+        transition: border-color 0.2s;
+        -webkit-appearance: none;
+      }
+      select {
+        -webkit-appearance: menulist;
+      }
+      input[type="text"]:focus,
+      input[type="password"]:focus,
+      input[type="number"]:focus,
+      select:focus {
+        border-color: #60a5fa;
+      }
+      input::placeholder {
+        color: #64748b;
+      }
+      select {
+        cursor: pointer;
+      }
+      select option {
+        background: #1e293b;
+      }
+
+      .station-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .station-col {
+        flex: 1;
+      }
+      .station-input-wrap {
+        display: flex;
+        gap: 5px;
+      }
+      .station-input-wrap input {
+        flex: 1;
+      }
+
+      .icon-btn {
+        background: rgba(96, 165, 250, 0.12);
+        border: 1px solid rgba(96, 165, 250, 0.25);
+        border-radius: 9px;
+        color: #60a5fa;
+        cursor: pointer;
+        font-size: 12px;
+        padding: 9px 8px;
+        white-space: nowrap;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+      }
+      .icon-btn:hover:not(:disabled) {
+        background: rgba(96, 165, 250, 0.25);
+      }
+      .icon-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .icon-btn.green {
+        background: rgba(52, 211, 153, 0.12);
+        border-color: rgba(52, 211, 153, 0.25);
+        color: #34d399;
+      }
+      .icon-btn.green:hover:not(:disabled) {
+        background: rgba(52, 211, 153, 0.25);
+      }
+      .icon-btn.locating {
+        animation: pulse 1s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
         }
-        .container { max-width: 820px; margin: 0 auto; padding: 14px; }
-        header { text-align: center; padding: 18px 0 12px; }
-        header h1 { font-size: 22px; background: linear-gradient(90deg,#60a5fa,#34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        header p { font-size: 13px; color: #94a3b8; margin-top: 2px; }
-
-        .card { background: rgba(30,41,59,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(100,116,139,0.25); border-radius: 14px; padding: 16px; margin-bottom: 10px; }
-
-        label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 2px; font-weight: 600; }
-        input[type="text"], input[type="password"], input[type="number"], input[type="date"], input[type="time"], select, textarea {
-            width: 100%; padding: 9px 11px;
-            background: rgba(15,23,42,0.6); border: 1px solid rgba(100,116,139,0.35);
-            border-radius: 9px; color: #e2e8f0; font-size: 16px; outline: none;
-            transition: border-color 0.2s; -webkit-appearance: none;
+        50% {
+          opacity: 0.4;
         }
-        select { -webkit-appearance: menulist; }
-        input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, select:focus { border-color: #60a5fa; }
-        input::placeholder { color: #64748b; }
-        select { cursor: pointer; }
-        select option { background: #1e293b; }
+      }
 
-        .station-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
-        .station-col { flex: 1; }
-        .station-input-wrap { display: flex; gap: 5px; }
-        .station-input-wrap input { flex: 1; }
+      .swap-btn {
+        background: rgba(96, 165, 250, 0.12);
+        border: 1px solid rgba(96, 165, 250, 0.25);
+        border-radius: 50%;
+        width: 34px;
+        height: 34px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #60a5fa;
+        font-size: 15px;
+        margin-top: 18px;
+        transition: all 0.15s;
+        flex-shrink: 0;
+      }
+      .swap-btn:hover {
+        background: rgba(96, 165, 250, 0.3);
+      }
 
-        .icon-btn { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25); border-radius: 9px; color: #60a5fa; cursor: pointer; font-size: 12px; padding: 9px 8px; white-space: nowrap; transition: all 0.15s; display: flex; align-items: center; }
-        .icon-btn:hover:not(:disabled) { background: rgba(96,165,250,0.25); }
-        .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .icon-btn.green { background: rgba(52,211,153,0.12); border-color: rgba(52,211,153,0.25); color: #34d399; }
-        .icon-btn.green:hover:not(:disabled) { background: rgba(52,211,153,0.25); }
-        .icon-btn.locating { animation: pulse 1s ease-in-out infinite; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+      .sub-text {
+        font-size: 13px;
+        color: #94a3b8;
+        margin-top: 2px;
+      }
+      .sub-text.ok {
+        color: #34d399;
+      }
+      .sub-text.err {
+        color: #fca5a5;
+      }
 
-        .swap-btn { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #60a5fa; font-size: 15px; margin-top: 18px; transition: all 0.15s; flex-shrink: 0; }
-        .swap-btn:hover { background: rgba(96,165,250,0.3); }
+      .via-row {
+        margin-bottom: 10px;
+      }
 
-        .sub-text { font-size: 13px; color: #94a3b8; margin-top: 2px; }
-        .sub-text.ok { color: #34d399; }
-        .sub-text.err { color: #fca5a5; }
+      .options-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .check-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .check-label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 13px;
+        color: #cbd5e1;
+        cursor: pointer;
+      }
+      .check-label input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: #60a5fa;
+        cursor: pointer;
+      }
 
-        .via-row { margin-bottom: 10px; }
+      .detail-toggle {
+        font-size: 12px;
+        color: #64748b;
+        cursor: pointer;
+        margin-bottom: 10px;
+        border: none;
+        background: none;
+      }
+      .detail-toggle:hover {
+        color: #94a3b8;
+      }
+      .detail-section {
+        display: none;
+        margin-bottom: 12px;
+      }
+      .detail-section.open {
+        display: block;
+      }
 
-        .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-bottom: 10px; }
-        .check-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
-        .check-label { display: flex; align-items: center; gap: 5px; font-size: 13px; color: #cbd5e1; cursor: pointer; }
-        .check-label input[type="checkbox"] { width: 16px; height: 16px; accent-color: #60a5fa; cursor: pointer; }
+      .transport-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-bottom: 10px;
+      }
+      .transport-chip {
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        border: 1px solid rgba(100, 116, 139, 0.35);
+        background: rgba(15, 23, 42, 0.5);
+        color: #cbd5e1;
+        cursor: pointer;
+        transition: all 0.15s;
+        user-select: none;
+      }
+      .transport-chip.off {
+        opacity: 0.35;
+        text-decoration: line-through;
+        border-color: rgba(239, 68, 68, 0.3);
+      }
 
-        .detail-toggle { font-size: 12px; color: #64748b; cursor: pointer; margin-bottom: 10px; border: none; background: none; }
-        .detail-toggle:hover { color: #94a3b8; }
-        .detail-section { display: none; margin-bottom: 12px; }
-        .detail-section.open { display: block; }
+      .search-btn {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        border: none;
+        border-radius: 11px;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+      }
+      .search-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+      .search-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
 
-        .transport-row { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
-        .transport-chip { padding: 5px 10px; border-radius: 8px; font-size: 12px; border: 1px solid rgba(100,116,139,0.35); background: rgba(15,23,42,0.5); color: #cbd5e1; cursor: pointer; transition: all 0.15s; user-select: none; }
-        .transport-chip.off { opacity: 0.35; text-decoration: line-through; border-color: rgba(239,68,68,0.3); }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .tool-btn {
+        padding: 7px 11px;
+        border-radius: 9px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+        background: rgba(30, 41, 59, 0.9);
+        color: #cbd5e1;
+        transition: all 0.15s;
+      }
+      .tool-btn:hover {
+        background: rgba(96, 165, 250, 0.15);
+        color: #93c5fd;
+      }
+      .tool-btn.active {
+        background: rgba(96, 165, 250, 0.2);
+        color: #60a5fa;
+        border-color: #60a5fa;
+      }
+      .tool-btn.orange {
+        color: #fbbf24;
+        border-color: rgba(251, 191, 36, 0.3);
+      }
+      .tool-btn.green2 {
+        color: #34d399;
+        border-color: rgba(52, 211, 153, 0.3);
+      }
 
-        .search-btn { width: 100%; padding: 12px; background: linear-gradient(135deg,#3b82f6,#2563eb); border: none; border-radius: 11px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 7px; }
-        .search-btn:hover:not(:disabled) { transform: translateY(-1px); }
-        .search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-        .tool-btn { padding: 7px 11px; border-radius: 9px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid rgba(100,116,139,0.3); background: rgba(30,41,59,0.9); color: #cbd5e1; transition: all 0.15s; }
-        .tool-btn:hover { background: rgba(96,165,250,0.15); color: #93c5fd; }
-        .tool-btn.active { background: rgba(96,165,250,0.2); color: #60a5fa; border-color: #60a5fa; }
-        .tool-btn.orange { color: #fbbf24; border-color: rgba(251,191,36,0.3); }
-        .tool-btn.green2 { color: #34d399; border-color: rgba(52,211,153,0.3); }
-
-        .route-card { background: rgba(30,41,59,0.85); border: 1px solid rgba(100,116,139,0.25); border-radius: 14px; margin-bottom: 10px; overflow: hidden; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-
-        .route-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(96,165,250,0.08); border-bottom: 1px solid rgba(100,116,139,0.15); flex-wrap: wrap; gap: 6px; }
-        .route-label { font-size: 13px; font-weight: 700; color: #60a5fa; }
-        .route-time-big { font-size: 20px; font-weight: 700; color: #f1f5f9; letter-spacing: -0.5px; }
-        .route-time-big .arr { color: #34d399; }
-        .route-meta { display: flex; gap: 8px; flex-wrap: wrap; }
-        .route-badge { padding: 3px 8px; border-radius: 6px; font-size: 13px; font-weight: 600; }
-        .badge-duration { background: rgba(96,165,250,0.15); color: #93c5fd; }
-        .badge-transfer { background: rgba(251,191,36,0.12); color: #fde68a; }
-        .badge-fare { background: rgba(52,211,153,0.12); color: #6ee7b7; }
-
-        .route-timeline { padding: 12px 16px 12px 20px; }
-        .tl-segment { position: relative; padding-left: 28px; padding-bottom: 0; }
-        .tl-segment:last-child { padding-bottom: 0; }
-        .tl-line { position: absolute; left: 8px; top: 18px; bottom: 0; width: 4px; border-radius: 2px; }
-        .tl-dot { position: absolute; left: 3px; top: 5px; width: 14px; height: 14px; border-radius: 50%; border: 3px solid; background: #0f172a; z-index: 1; }
-        .tl-dot.start { border-color: #60a5fa; background: #60a5fa; }
-        .tl-dot.end { border-color: #34d399; background: #34d399; }
-        .tl-dot.transfer { border-color: #fbbf24; background: #fbbf24; }
-
-        .tl-station { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
-        .tl-station-time { font-size: 15px; font-weight: 700; color: #f1f5f9; min-width: 42px; font-variant-numeric: tabular-nums; }
-        .tl-station-name { font-size: 14px; font-weight: 600; color: #e2e8f0; }
-        .tl-station-platform { font-size: 13px; color: #94a3b8; margin-left: 4px; }
-
-        .tl-ride { padding: 6px 0 6px 0; margin-left: 0; }
-        .tl-ride-line { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-bottom: 3px; }
-        .line-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; border-radius: 50%; font-size: 11px; font-weight: 800; color: #fff; letter-spacing: -0.5px; line-height: 1; padding: 0 3px; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.3); }
-        .tl-ride-detail { font-size: 13px; color: #94a3b8; line-height: 1.5; }
-        .tl-ride-detail span { margin-right: 10px; }
-
-        .tl-stops-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; margin: 2px 0 0; border: 1px solid rgba(100,116,139,0.2); border-radius: 6px; font-size: 13px; color: #64748b; cursor: pointer; background: rgba(15,23,42,0.3); transition: all 0.15s; }
-        .tl-stops-toggle:hover { color: #94a3b8; border-color: rgba(100,116,139,0.4); }
-        .tl-stops-toggle .arrow { transition: transform 0.2s; display: inline-block; }
-        .tl-stops-toggle.open .arrow { transform: rotate(90deg); }
-        .tl-stops-list { display: none; margin: 4px 0 2px; padding: 0; }
-        .tl-stops-list.open { display: block; }
-        .tl-stop { display: flex; align-items: center; gap: 8px; padding: 2px 0; position: relative; }
-        .tl-stop-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-        .tl-stop-time { font-size: 13px; color: #94a3b8; min-width: 38px; font-variant-numeric: tabular-nums; }
-        .tl-stop-name { font-size: 13px; color: #94a3b8; }
-
-        .tl-transfer-box { display: flex; align-items: center; gap: 6px; padding: 5px 10px; margin: 4px 0; background: rgba(251,191,36,0.08); border: 1px dashed rgba(251,191,36,0.25); border-radius: 8px; font-size: 13px; color: #fde68a; }
-
-        .route-notes { padding: 8px 16px 12px; border-top: 1px solid rgba(100,116,139,0.12); }
-        .route-notes p { font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 2px; }
-        .route-notes .warn { color: #fca5a5; }
-
-        .result-card { background: rgba(30,41,59,0.85); border: 1px solid rgba(100,116,139,0.25); border-radius: 14px; padding: 16px; margin-bottom: 10px; animation: fadeIn 0.3s ease; }
-        .result-card h3 { color: #60a5fa; margin-bottom: 10px; font-size: 14px; }
-        .result-content { line-height: 1.75; font-size: 13px; color: #cbd5e1; }
-        .result-content h1,.result-content h2,.result-content h3,.result-content h4 { color: #60a5fa; margin: 10px 0 4px; }
-        .result-content h1{font-size:17px} .result-content h2{font-size:15px} .result-content h3{font-size:14px}
-        .result-content p { margin-bottom: 6px; }
-        .result-content strong { color: #f1f5f9; }
-        .result-content ul, .result-content ol { padding-left: 20px; margin-bottom: 6px; }
-        .result-content li { margin-bottom: 2px; }
-        .result-content a { color: #38bdf8; text-decoration: none; }
-        .result-content table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-        .result-content th, .result-content td { border: 1px solid rgba(100,116,139,0.3); padding: 5px 8px; text-align: left; font-size: 13px; }
-        .result-content th { background: rgba(96,165,250,0.1); color: #60a5fa; }
-
-        .sources { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(100,116,139,0.15); }
-        .sources h4 { font-size: 13px; color: #64748b; margin-bottom: 4px; }
-        .sources a { display: inline-block; font-size: 13px; color: #38bdf8; text-decoration: none; margin-right: 10px; }
-
-        .loading { text-align: center; padding: 28px; }
-        .spinner { width: 30px; height: 30px; border: 3px solid rgba(96,165,250,0.2); border-top-color: #60a5fa; border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 8px; }
-        @keyframes spin { to{transform:rotate(360deg)} }
-        .loading p { color: #94a3b8; font-size: 12px; }
-
-        .error-msg { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 11px; padding: 12px; color: #fca5a5; font-size: 12px; margin-bottom: 10px; }
-
-        .alarm-bar { display: none; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); border-radius: 11px; margin-bottom: 10px; }
-        .alarm-bar.active { display: flex; }
-        .alarm-time { font-size: 24px; font-weight: 700; color: #fbbf24; font-variant-numeric: tabular-nums; }
-        .alarm-label { flex: 1; font-size: 13px; color: #fde68a; }
-        .alarm-cancel { padding: 5px 12px; border-radius: 7px; border: 1px solid rgba(251,191,36,0.4); background: transparent; color: #fbbf24; cursor: pointer; font-size: 12px; }
-
-        .expense-bar { background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); border-radius: 11px; padding: 10px 14px; margin-bottom: 10px; }
-        .expense-bar h4 { font-size: 12px; color: #a78bfa; margin-bottom: 6px; }
-        .expense-list { font-size: 13px; color: #c4b5fd; }
-        .expense-list .item { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid rgba(139,92,246,0.1); }
-        .expense-total { display: flex; justify-content: space-between; font-weight: 700; color: #a78bfa; padding-top: 4px; font-size: 13px; }
-        .expense-actions { display: flex; gap: 6px; margin-top: 6px; }
-        .expense-actions button { padding: 3px 10px; border-radius: 7px; border: 1px solid rgba(139,92,246,0.3); background: transparent; color: #a78bfa; cursor: pointer; font-size: 13px; }
-
-        .section-title { color: #94a3b8; font-size: 12px; margin-bottom: 6px; font-weight: 600; }
-        .tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.18); border-radius: 18px; padding: 4px 11px; font-size: 13px; color: #93c5fd; cursor: pointer; margin: 0 5px 5px 0; }
-        .tag:hover { background: rgba(96,165,250,0.18); }
-        .tag .del { color: #64748b; margin-left: 2px; font-size: 13px; }
-        .tag .del:hover { color: #fca5a5; }
-        .tag.fav { border-color: rgba(251,191,36,0.25); color: #fde68a; background: rgba(251,191,36,0.06); }
-
-        .settings-toggle { text-align: right; margin-bottom: 6px; }
-        .settings-toggle button { background: none; border: none; color: #64748b; cursor: pointer; font-size: 12px; }
-        .settings-toggle button:hover { color: #94a3b8; }
-        .settings-panel { display: none; margin-bottom: 10px; }
-        .settings-panel.open { display: block; }
-
-        .crowd-bar { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; font-size: 12px; vertical-align: middle; }
-        .crowd-bar .crowd-icons { display: inline-flex; margin-left: -2px; letter-spacing: -6px; }
-        .crowd-bar .ci { font-size: 14px; opacity: 0.2; }
-        .crowd-bar .ci.on { opacity: 1; }
-        .crowd-bar .crowd-label { margin-left: 3px; font-weight: 600; }
-        .crowd-1 { background: rgba(52,211,153,0.1); color: #34d399; }
-        .crowd-2 { background: rgba(96,165,250,0.1); color: #60a5fa; }
-        .crowd-3 { background: rgba(251,191,36,0.1); color: #fbbf24; }
-        .crowd-4 { background: rgba(249,115,22,0.1); color: #f97316; }
-        .crowd-5 { background: rgba(239,68,68,0.12); color: #ef4444; }
-
-        .tl-delay { display: flex; align-items: center; gap: 6px; padding: 6px 12px; margin: 4px 0; background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.25); border-radius: 8px; }
-        .tl-delay-icon { color: #f97316; font-size: 16px; flex-shrink: 0; }
-        .tl-delay-text { font-size: 13px; font-weight: 600; color: #f97316; }
-        .tl-delay-reason { font-size: 12px; color: #fb923c; font-weight: 400; margin-left: 4px; }
-
-        .verify-badge { display: none; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
-        .verify-badge.verifying { display: inline-flex; background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.25); color: #93c5fd; }
-        .verify-badge.done { display: inline-flex; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.25); color: #34d399; }
-        .verify-badge.corrected { display: inline-flex; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25); color: #fde68a; animation: pulse 2s ease-in-out; }
-
-        .info-banner { display: none; padding: 8px 12px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 11px; margin-bottom: 10px; font-size: 12px; color: #fca5a5; }
-        .info-banner.show { display: block; }
-        .info-banner.ok { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.2); color: #34d399; }
-
-        /* [修正7] 混雑度推定ラベル */
-        .crowd-estimate-label { font-size: 10px; color: #64748b; font-weight: 400; margin-left: 2px; }
-
-        /* [修正8] 到着駅不一致バナー */
-        .dest-warn-banner { padding: 8px 12px; background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.3); border-radius: 10px; margin-bottom: 10px; font-size: 13px; color: #fb923c; font-weight: 600; }
-
-        /* [修正5] 運賃注記バナー */
-        .fare-warn-banner { padding: 6px 12px; background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); border-radius: 8px; margin-bottom: 8px; font-size: 12px; color: #a78bfa; }
-
-        .mode-tabs { display: flex; margin-bottom: 10px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(100,116,139,0.3); }
-        .mode-tab { flex: 1; padding: 9px; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; background: rgba(15,23,42,0.5); color: #94a3b8; border: none; }
-        .mode-tab.active { background: rgba(96,165,250,0.15); color: #60a5fa; }
-
-        @media (max-width: 600px) {
-            .station-row { flex-direction: column; }
-            .swap-btn { margin-top: 0; align-self: center; transform: rotate(90deg); }
-            .options-grid { grid-template-columns: 1fr 1fr; }
-            .route-time-big { font-size: 18px; }
+      .route-card {
+        background: rgba(30, 41, 59, 0.85);
+        border: 1px solid rgba(100, 116, 139, 0.25);
+        border-radius: 14px;
+        margin-bottom: 10px;
+        overflow: hidden;
+        animation: fadeIn 0.3s ease;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
         }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .route-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background: rgba(96, 165, 250, 0.08);
+        border-bottom: 1px solid rgba(100, 116, 139, 0.15);
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .route-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #60a5fa;
+      }
+      .route-time-big {
+        font-size: 20px;
+        font-weight: 700;
+        color: #f1f5f9;
+        letter-spacing: -0.5px;
+      }
+      .route-time-big .arr {
+        color: #34d399;
+      }
+      .route-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .route-badge {
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .badge-duration {
+        background: rgba(96, 165, 250, 0.15);
+        color: #93c5fd;
+      }
+      .badge-transfer {
+        background: rgba(251, 191, 36, 0.12);
+        color: #fde68a;
+      }
+      .badge-fare {
+        background: rgba(52, 211, 153, 0.12);
+        color: #6ee7b7;
+      }
+
+      .route-timeline {
+        padding: 12px 16px 12px 20px;
+      }
+      .tl-segment {
+        position: relative;
+        padding-left: 28px;
+        padding-bottom: 0;
+      }
+      .tl-segment:last-child {
+        padding-bottom: 0;
+      }
+      .tl-line {
+        position: absolute;
+        left: 8px;
+        top: 18px;
+        bottom: 0;
+        width: 4px;
+        border-radius: 2px;
+      }
+      .tl-dot {
+        position: absolute;
+        left: 3px;
+        top: 5px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 3px solid;
+        background: #0f172a;
+        z-index: 1;
+      }
+      .tl-dot.start {
+        border-color: #60a5fa;
+        background: #60a5fa;
+      }
+      .tl-dot.end {
+        border-color: #34d399;
+        background: #34d399;
+      }
+      .tl-dot.transfer {
+        border-color: #fbbf24;
+        background: #fbbf24;
+      }
+
+      .tl-station {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 2px;
+      }
+      .tl-station-time {
+        font-size: 15px;
+        font-weight: 700;
+        color: #f1f5f9;
+        min-width: 42px;
+        font-variant-numeric: tabular-nums;
+      }
+      .tl-station-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #e2e8f0;
+      }
+      .tl-station-platform {
+        font-size: 13px;
+        color: #94a3b8;
+        margin-left: 4px;
+      }
+
+      .tl-ride {
+        padding: 6px 0 6px 0;
+        margin-left: 0;
+      }
+      .tl-ride-line {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 3px;
+      }
+      .line-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -0.5px;
+        line-height: 1;
+        padding: 0 3px;
+        flex-shrink: 0;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+      }
+      .tl-ride-detail {
+        font-size: 13px;
+        color: #94a3b8;
+        line-height: 1.5;
+      }
+      .tl-ride-detail span {
+        margin-right: 10px;
+      }
+
+      .tl-stops-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        margin: 2px 0 0;
+        border: 1px solid rgba(100, 116, 139, 0.2);
+        border-radius: 6px;
+        font-size: 13px;
+        color: #64748b;
+        cursor: pointer;
+        background: rgba(15, 23, 42, 0.3);
+        transition: all 0.15s;
+      }
+      .tl-stops-toggle:hover {
+        color: #94a3b8;
+        border-color: rgba(100, 116, 139, 0.4);
+      }
+      .tl-stops-toggle .arrow {
+        transition: transform 0.2s;
+        display: inline-block;
+      }
+      .tl-stops-toggle.open .arrow {
+        transform: rotate(90deg);
+      }
+      .tl-stops-list {
+        display: none;
+        margin: 4px 0 2px;
+        padding: 0;
+      }
+      .tl-stops-list.open {
+        display: block;
+      }
+      .tl-stop {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 2px 0;
+        position: relative;
+      }
+      .tl-stop-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .tl-stop-time {
+        font-size: 13px;
+        color: #94a3b8;
+        min-width: 38px;
+        font-variant-numeric: tabular-nums;
+      }
+      .tl-stop-name {
+        font-size: 13px;
+        color: #94a3b8;
+      }
+
+      .tl-transfer-box {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        margin: 4px 0;
+        background: rgba(251, 191, 36, 0.08);
+        border: 1px dashed rgba(251, 191, 36, 0.25);
+        border-radius: 8px;
+        font-size: 13px;
+        color: #fde68a;
+      }
+
+      .route-notes {
+        padding: 8px 16px 12px;
+        border-top: 1px solid rgba(100, 116, 139, 0.12);
+      }
+      .route-notes p {
+        font-size: 13px;
+        color: #94a3b8;
+        line-height: 1.5;
+        margin-bottom: 2px;
+      }
+      .route-notes .warn {
+        color: #fca5a5;
+      }
+
+      .result-card {
+        background: rgba(30, 41, 59, 0.85);
+        border: 1px solid rgba(100, 116, 139, 0.25);
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 10px;
+        animation: fadeIn 0.3s ease;
+      }
+      .result-card h3 {
+        color: #60a5fa;
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
+      .result-content {
+        line-height: 1.75;
+        font-size: 13px;
+        color: #cbd5e1;
+      }
+      .result-content h1,
+      .result-content h2,
+      .result-content h3,
+      .result-content h4 {
+        color: #60a5fa;
+        margin: 10px 0 4px;
+      }
+      .result-content h1 {
+        font-size: 17px;
+      }
+      .result-content h2 {
+        font-size: 15px;
+      }
+      .result-content h3 {
+        font-size: 14px;
+      }
+      .result-content p {
+        margin-bottom: 6px;
+      }
+      .result-content strong {
+        color: #f1f5f9;
+      }
+      .result-content ul,
+      .result-content ol {
+        padding-left: 20px;
+        margin-bottom: 6px;
+      }
+      .result-content li {
+        margin-bottom: 2px;
+      }
+      .result-content a {
+        color: #38bdf8;
+        text-decoration: none;
+      }
+      .result-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 8px 0;
+      }
+      .result-content th,
+      .result-content td {
+        border: 1px solid rgba(100, 116, 139, 0.3);
+        padding: 5px 8px;
+        text-align: left;
+        font-size: 13px;
+      }
+      .result-content th {
+        background: rgba(96, 165, 250, 0.1);
+        color: #60a5fa;
+      }
+
+      .sources {
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(100, 116, 139, 0.15);
+      }
+      .sources h4 {
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 4px;
+      }
+      .sources a {
+        display: inline-block;
+        font-size: 13px;
+        color: #38bdf8;
+        text-decoration: none;
+        margin-right: 10px;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 28px;
+      }
+      .spinner {
+        width: 30px;
+        height: 30px;
+        border: 3px solid rgba(96, 165, 250, 0.2);
+        border-top-color: #60a5fa;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        margin: 0 auto 8px;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .loading p {
+        color: #94a3b8;
+        font-size: 12px;
+      }
+
+      .error-msg {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 11px;
+        padding: 12px;
+        color: #fca5a5;
+        font-size: 12px;
+        margin-bottom: 10px;
+      }
+
+      .alarm-bar {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: rgba(251, 191, 36, 0.1);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        border-radius: 11px;
+        margin-bottom: 10px;
+      }
+      .alarm-bar.active {
+        display: flex;
+      }
+      .alarm-time {
+        font-size: 24px;
+        font-weight: 700;
+        color: #fbbf24;
+        font-variant-numeric: tabular-nums;
+      }
+      .alarm-label {
+        flex: 1;
+        font-size: 13px;
+        color: #fde68a;
+      }
+      .alarm-cancel {
+        padding: 5px 12px;
+        border-radius: 7px;
+        border: 1px solid rgba(251, 191, 36, 0.4);
+        background: transparent;
+        color: #fbbf24;
+        cursor: pointer;
+        font-size: 12px;
+      }
+
+      .expense-bar {
+        background: rgba(139, 92, 246, 0.08);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        border-radius: 11px;
+        padding: 10px 14px;
+        margin-bottom: 10px;
+      }
+      .expense-bar h4 {
+        font-size: 12px;
+        color: #a78bfa;
+        margin-bottom: 6px;
+      }
+      .expense-list {
+        font-size: 13px;
+        color: #c4b5fd;
+      }
+      .expense-list .item {
+        display: flex;
+        justify-content: space-between;
+        padding: 2px 0;
+        border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+      }
+      .expense-total {
+        display: flex;
+        justify-content: space-between;
+        font-weight: 700;
+        color: #a78bfa;
+        padding-top: 4px;
+        font-size: 13px;
+      }
+      .expense-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 6px;
+      }
+      .expense-actions button {
+        padding: 3px 10px;
+        border-radius: 7px;
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        background: transparent;
+        color: #a78bfa;
+        cursor: pointer;
+        font-size: 13px;
+      }
+
+      .section-title {
+        color: #94a3b8;
+        font-size: 12px;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(96, 165, 250, 0.08);
+        border: 1px solid rgba(96, 165, 250, 0.18);
+        border-radius: 18px;
+        padding: 4px 11px;
+        font-size: 13px;
+        color: #93c5fd;
+        cursor: pointer;
+        margin: 0 5px 5px 0;
+      }
+      .tag:hover {
+        background: rgba(96, 165, 250, 0.18);
+      }
+      .tag .del {
+        color: #64748b;
+        margin-left: 2px;
+        font-size: 13px;
+      }
+      .tag .del:hover {
+        color: #fca5a5;
+      }
+      .tag.fav {
+        border-color: rgba(251, 191, 36, 0.25);
+        color: #fde68a;
+        background: rgba(251, 191, 36, 0.06);
+      }
+
+      .settings-toggle {
+        text-align: right;
+        margin-bottom: 6px;
+      }
+      .settings-toggle button {
+        background: none;
+        border: none;
+        color: #64748b;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .settings-toggle button:hover {
+        color: #94a3b8;
+      }
+      .settings-panel {
+        display: none;
+        margin-bottom: 10px;
+      }
+      .settings-panel.open {
+        display: block;
+      }
+
+      .crowd-bar {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        vertical-align: middle;
+      }
+      .crowd-bar .crowd-icons {
+        display: inline-flex;
+        margin-left: -2px;
+        letter-spacing: -6px;
+      }
+      .crowd-bar .ci {
+        font-size: 14px;
+        opacity: 0.2;
+      }
+      .crowd-bar .ci.on {
+        opacity: 1;
+      }
+      .crowd-bar .crowd-label {
+        margin-left: 3px;
+        font-weight: 600;
+      }
+      .crowd-1 {
+        background: rgba(52, 211, 153, 0.1);
+        color: #34d399;
+      }
+      .crowd-2 {
+        background: rgba(96, 165, 250, 0.1);
+        color: #60a5fa;
+      }
+      .crowd-3 {
+        background: rgba(251, 191, 36, 0.1);
+        color: #fbbf24;
+      }
+      .crowd-4 {
+        background: rgba(249, 115, 22, 0.1);
+        color: #f97316;
+      }
+      .crowd-5 {
+        background: rgba(239, 68, 68, 0.12);
+        color: #ef4444;
+      }
+
+      .tl-delay {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        margin: 4px 0;
+        background: rgba(249, 115, 22, 0.08);
+        border: 1px solid rgba(249, 115, 22, 0.25);
+        border-radius: 8px;
+      }
+      .tl-delay-icon {
+        color: #f97316;
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+      .tl-delay-text {
+        font-size: 13px;
+        font-weight: 600;
+        color: #f97316;
+      }
+      .tl-delay-reason {
+        font-size: 12px;
+        color: #fb923c;
+        font-weight: 400;
+        margin-left: 4px;
+      }
+
+      .verify-badge {
+        display: none;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+      .verify-badge.verifying {
+        display: inline-flex;
+        background: rgba(96, 165, 250, 0.1);
+        border: 1px solid rgba(96, 165, 250, 0.25);
+        color: #93c5fd;
+      }
+      .verify-badge.done {
+        display: inline-flex;
+        background: rgba(52, 211, 153, 0.1);
+        border: 1px solid rgba(52, 211, 153, 0.25);
+        color: #34d399;
+      }
+      .verify-badge.corrected {
+        display: inline-flex;
+        background: rgba(251, 191, 36, 0.1);
+        border: 1px solid rgba(251, 191, 36, 0.25);
+        color: #fde68a;
+        animation: pulse 2s ease-in-out;
+      }
+
+      .info-banner {
+        display: none;
+        padding: 8px 12px;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 11px;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: #fca5a5;
+      }
+      .info-banner.show {
+        display: block;
+      }
+      .info-banner.ok {
+        background: rgba(52, 211, 153, 0.08);
+        border-color: rgba(52, 211, 153, 0.2);
+        color: #34d399;
+      }
+
+      /* [修正7] 混雑度推定ラベル */
+      .crowd-estimate-label {
+        font-size: 10px;
+        color: #64748b;
+        font-weight: 400;
+        margin-left: 2px;
+      }
+
+      /* [修正8] 到着駅不一致バナー */
+      .dest-warn-banner {
+        padding: 8px 12px;
+        background: rgba(249, 115, 22, 0.1);
+        border: 1px solid rgba(249, 115, 22, 0.3);
+        border-radius: 10px;
+        margin-bottom: 10px;
+        font-size: 13px;
+        color: #fb923c;
+        font-weight: 600;
+      }
+
+      /* [修正5] 運賃注記バナー */
+      .fare-warn-banner {
+        padding: 6px 12px;
+        background: rgba(139, 92, 246, 0.08);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        border-radius: 8px;
+        margin-bottom: 8px;
+        font-size: 12px;
+        color: #a78bfa;
+      }
+
+      .mode-tabs {
+        display: flex;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+      }
+      .mode-tab {
+        flex: 1;
+        padding: 9px;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: rgba(15, 23, 42, 0.5);
+        color: #94a3b8;
+        border: none;
+      }
+      .mode-tab.active {
+        background: rgba(96, 165, 250, 0.15);
+        color: #60a5fa;
+      }
+
+      @media (max-width: 600px) {
+        .station-row {
+          flex-direction: column;
+        }
+        .swap-btn {
+          margin-top: 0;
+          align-self: center;
+          transform: rotate(90deg);
+        }
+        .options-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .route-time-big {
+          font-size: 18px;
+        }
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      summary:focus-visible {
+        outline: 3px solid #60a5fa;
+        outline-offset: 3px;
+      }
+      .settings-panel label {
+        margin-top: 10px;
+      }
+      .primary-link {
+        display: inline-block;
+        background: #2563eb;
+        border-radius: 9px;
+        color: white;
+        padding: 12px 18px;
+        text-decoration: none;
+        font-weight: 600;
+        margin: 10px 0;
+      }
+      .sub-text {
+        line-height: 1.65;
+      }
+      .result-content {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .toolbar button {
+        min-height: 40px;
+      }
+      .selected-route {
+        border: 2px solid #60a5fa;
+      }
+      .tag button {
+        background: transparent;
+        color: inherit;
+        border: 0;
+        cursor: pointer;
+        padding: 3px;
+      }
+      summary {
+        cursor: pointer;
+        color: #93c5fd;
+        padding: 8px 0;
+      }
+      .check-row {
+        margin-top: 10px;
+      }
+      .title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      header {
+        text-align: left;
+        padding: 12px 0 18px;
+      }
+      header h1 {
+        font-size: 26px;
+      }
+      .route-notes {
+        line-height: 1.7;
+      }
+      .mode-tab {
+        min-height: 44px;
+      }
+      #cancelSearch {
+        width: 100%;
+        margin-top: 8px;
+      }
+      .transport-chip {
+        min-height: 36px;
+      }
+      .station-col {
+        min-width: 0;
+      }
+      @media (max-width: 600px) {
+        header h1 {
+          font-size: 23px;
+        }
+        .station-input-wrap input {
+          min-width: 0;
+        }
+        .container {
+          padding: 12px;
+        }
+        .options-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
     </style>
-</head>
-<body>
-<div class="container">
-
-    <div class="settings-toggle"><button onclick="document.getElementById('settingsPanel').classList.toggle('open')">API設定</button></div>
-    <div class="settings-panel" id="settingsPanel">
-        <div class="card">
-            <label>OpenAI API Key</label>
-            <input type="password" id="apiKey" placeholder="sk-proj-..." />
-            <div style="margin-top:8px;">
-                <label>検索方式</label>
-                <div class="sub-text" style="line-height:1.6;">
-                    Step1: <strong style="color:#60a5fa;">GPT-4o mini search</strong>（高速検索）<br>
-                    Step2: <strong style="color:#34d399;">GPT-5.4 mini</strong>（バックグラウンド検証・修正）
-                </div>
-            </div>
-            <div style="margin-top:8px;">
-                <label>タイムアウト（秒）</label>
-                <input type="number" id="timeoutSec" value="120" min="30" max="600" style="width:120px;" />
-            </div>
-            <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(100,116,139,0.2);">
-                <label>ODPT APIキー（任意・無料登録）</label>
-                <input type="password" id="odptKey" placeholder="未設定でもPublic APIで動作します" />
-                <div class="sub-text">時刻表・運行情報をリアルタイムデータで補強。<a href="https://developer.odpt.org/signup" target="_blank" style="color:#38bdf8;">登録はこちら</a></div>
-            </div>
+    <script src="train-core.js" defer></script>
+    <script src="holidays.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <main class="container">
+      <header class="title-row">
+        <div>
+          <h1>電車乗り換え検索</h1>
+          <p>日時と条件を指定して、乗りたい経路を探す</p>
         </div>
-    </div>
-
-    <div class="mode-tabs">
-        <button class="mode-tab active" onclick="setMode('route')" id="modeRoute">経路検索</button>
-        <button class="mode-tab" onclick="setMode('timetable')" id="modeTimetable">時刻表</button>
-        <button class="mode-tab" onclick="setMode('commuter')" id="modeCommuter">定期代</button>
-        <button class="mode-tab" onclick="setMode('status')" id="modeStatus">運行情報</button>
-    </div>
-
-    <div class="info-banner" id="infoBanner"></div>
-
-    <div class="card" id="searchForm">
-        <div class="station-row">
-            <div class="station-col">
-                <label>出発駅</label>
-                <div class="station-input-wrap">
-                    <input type="text" id="fromStation" placeholder="例: 東京" />
-                    <button class="icon-btn green" id="gpsBtn" onclick="detectStation()">GPS</button>
-                    <button class="icon-btn" onclick="voiceInput('fromStation')">MIC</button>
-                </div>
-                <div id="gpsStatus" class="sub-text" style="display:none;"></div>
-            </div>
-            <button class="swap-btn" onclick="swapStations()">&#8652;</button>
-            <div class="station-col">
-                <label>到着駅</label>
-                <div class="station-input-wrap">
-                    <input type="text" id="toStation" placeholder="例: 大阪" />
-                    <button class="icon-btn" onclick="voiceInput('toStation')">MIC</button>
-                </div>
-            </div>
+        <button
+          class="tool-btn"
+          onclick="toggleSettings()"
+          aria-controls="settingsPanel"
+          id="settingsToggle"
+          aria-expanded="false"
+        >
+          API設定
+        </button>
+      </header>
+      <section
+        class="settings-panel card"
+        id="settingsPanel"
+        aria-label="API設定"
+      >
+        <p class="sub-text">
+          無料の検索はキー不要です。アプリ内表示やAI参考検索を使うときだけ設定してください。キーはこのPCのサーバーのメモリーで扱い、終了時に消えます。
+        </p>
+        <label for="ekispertKey"
+          >駅すぱあとAPIキー（ダイヤ探索の契約が必要）</label
+        ><input type="password" id="ekispertKey" autocomplete="off" />
+        <label for="odptKey">ODPT APIキー（任意）</label
+        ><input type="password" id="odptKey" autocomplete="off" />
+        <label for="apiKey">OpenAI APIキー（任意・AI参考検索用）</label
+        ><input type="password" id="apiKey" autocomplete="off" />
+        <label for="aiModel">AI参考検索のモデル</label
+        ><select id="aiModel">
+          <option value="gpt-6-luna">GPT-6 Luna</option>
+          <option value="gpt-6.1-sol">GPT-6.1 Sol</option>
+        </select>
+        <label for="timeoutSec">取得の待ち時間（秒）</label
+        ><input id="timeoutSec" type="number" value="120" min="10" max="120" />
+        <div class="toolbar" style="margin-top: 12px">
+          <button class="tool-btn" onclick="saveSettings()">
+            入力したキーを使う</button
+          ><button class="tool-btn" onclick="clearSettings()">キーを消去</button
+          ><a class="tool-btn" href="test_api.html">API接続テスト</a>
         </div>
-
-        <div class="via-row" id="viaRow">
-            <label>経由駅（任意）</label>
-            <input type="text" id="viaStation" placeholder="例: 新宿（カンマ区切りで複数可）" />
+        <p id="settingsStatus" class="sub-text" role="status"></p>
+      </section>
+      <nav class="mode-tabs" aria-label="検索の種類">
+        <button
+          class="mode-tab active"
+          id="modeRoute"
+          onclick="setMode('route')"
+          aria-pressed="true"
+        >
+          経路</button
+        ><button
+          class="mode-tab"
+          id="modeTimetable"
+          onclick="setMode('timetable')"
+          aria-pressed="false"
+        >
+          時刻表</button
+        ><button
+          class="mode-tab"
+          id="modeCommuter"
+          onclick="setMode('commuter')"
+          aria-pressed="false"
+        >
+          定期券</button
+        ><button
+          class="mode-tab"
+          id="modeStatus"
+          onclick="setMode('status')"
+          aria-pressed="false"
+        >
+          運行情報
+        </button>
+      </nav>
+      <div id="infoBanner" class="info-banner" role="status"></div>
+      <form
+        id="searchForm"
+        class="card"
+        onsubmit="
+          event.preventDefault();
+          doSearch();
+        "
+      >
+        <div class="station-row" id="stationRow">
+          <div class="station-col">
+            <label for="fromStation" id="fromLabel">出発駅</label>
+            <div class="station-input-wrap">
+              <input
+                type="text"
+                id="fromStation"
+                placeholder="例：川間"
+                maxlength="100"
+                autocomplete="off"
+              /><button
+                class="icon-btn green"
+                id="gpsBtn"
+                type="button"
+                onclick="detectStation()"
+                aria-label="現在地から近くの駅を探す"
+              >
+                近くの駅</button
+              ><button
+                class="icon-btn"
+                type="button"
+                onclick="voiceInput('fromStation')"
+                aria-label="出発駅を音声入力"
+              >
+                音声
+              </button>
+            </div>
+            <p id="gpsStatus" class="sub-text" role="status"></p>
+          </div>
+          <button
+            class="swap-btn"
+            id="swapBtn"
+            type="button"
+            onclick="swapStations()"
+            aria-label="出発駅と到着駅を入れ替える"
+          >
+            ⇄
+          </button>
+          <div class="station-col" id="toCol">
+            <label for="toStation">到着駅</label>
+            <div class="station-input-wrap">
+              <input
+                type="text"
+                id="toStation"
+                placeholder="例：大宮"
+                maxlength="100"
+                autocomplete="off"
+              /><button
+                class="icon-btn"
+                type="button"
+                onclick="voiceInput('toStation')"
+                aria-label="到着駅を音声入力"
+              >
+                音声
+              </button>
+            </div>
+          </div>
         </div>
-
         <div class="options-grid" id="optionsGrid">
-            <div><label>日付</label><input type="date" id="date" /></div>
-            <div><label>時刻 <span id="liveClock" style="color:#34d399;font-weight:400;cursor:pointer;" onclick="updateNow()"></span></label><input type="time" id="time" /></div>
-            <div><label>条件</label><select id="timeType"><option value="departure">出発時刻指定</option><option value="arrival">到着時刻指定</option><option value="first">始発</option><option value="last">終電</option></select></div>
-            <div><label>優先</label><select id="priority"><option value="recommended">おすすめ</option><option value="fast">速い</option><option value="cheap">安い</option><option value="less_transfer">乗換少</option></select></div>
-            <div><label>歩く速度</label><select id="walkSpeed"><option value="slow">ゆっくり</option><option value="slightly_slow">少しゆっくり</option><option value="normal" selected>標準</option><option value="slightly_fast">少し急ぎ</option><option value="fast">急いで</option></select></div>
+          <div id="dateField">
+            <label for="date">利用日（日本時間）</label
+            ><input type="date" id="date" />
+          </div>
+          <div id="timeField">
+            <label for="time"
+              >時刻
+              <button
+                class="tool-btn"
+                type="button"
+                onclick="updateNow()"
+                style="padding: 2px 6px; min-height: 24px"
+              >
+                今に設定
+              </button></label
+            ><input type="time" id="time" />
+          </div>
+          <div id="timeTypeField">
+            <label for="timeType">時刻の指定</label
+            ><select id="timeType">
+              <option value="departure">出発</option>
+              <option value="arrival">到着</option>
+              <option value="first">始発</option>
+              <option value="last">終電</option>
+            </select>
+          </div>
+          <div id="priorityField">
+            <label for="priority">優先する条件</label
+            ><select id="priority">
+              <option value="recommended">おすすめ</option>
+              <option value="fast">到着が早い</option>
+              <option value="cheap">料金が安い</option>
+              <option value="less_transfer">乗換が少ない</option>
+            </select>
+          </div>
         </div>
-
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="priorityBtns">
-            <button class="tool-btn active" onclick="setPriority('recommended',this)">おすすめ</button>
-            <button class="tool-btn" onclick="setPriority('fast',this)" style="color:#60a5fa;">最速</button>
-            <button class="tool-btn" onclick="setPriority('cheap',this)" style="color:#34d399;">最安</button>
-            <button class="tool-btn" onclick="setPriority('less_transfer',this)" style="color:#fbbf24;">最楽</button>
-        </div>
-
-        <div class="check-row" id="checkRow">
-            <label class="check-label"><input type="checkbox" id="optBarrierFree" /> バリアフリー</label>
-            <label class="check-label"><input type="checkbox" id="optBoardingPos" checked /> 乗車位置</label>
-            <label class="check-label"><input type="checkbox" id="optDoorSide" /> ドア方向</label>
-            <label class="check-label"><input type="checkbox" id="optAvoidDelay" checked /> 遅延回避</label>
-            <label class="check-label"><input type="checkbox" id="optCommuterPass" /> 定期券考慮</label>
-        </div>
-
-        <button class="detail-toggle" onclick="document.getElementById('detailSection').classList.toggle('open'); this.textContent = this.textContent.includes('▶') ? '▼ 詳細設定を閉じる' : '▶ 詳細設定';">▶ 詳細設定</button>
-        <div class="detail-section" id="detailSection">
-            <label style="margin-bottom:5px;">交通手段（タップで除外）</label>
+        <div id="routeOptions">
+          <label for="routeProvider">検索方法</label
+          ><select id="routeProvider" onchange="updateProviderHint()">
+            <option value="yahoo">Yahoo!乗換案内で確認（無料）</option>
+            <option value="ekispert">アプリ内に表示（駅すぱあとAPI）</option>
+          </select>
+          <p id="providerHint" class="sub-text"></p>
+          <details id="detailSection">
+            <summary>経由駅・追加条件</summary>
+            <div class="via-row">
+              <label for="viaStation"
+                >経由駅（無料検索は1駅、APIは最大3駅）</label
+              ><input
+                type="text"
+                id="viaStation"
+                placeholder="例：春日部"
+                maxlength="100"
+              />
+            </div>
+            <label for="walkSpeed">歩く速さ（検索先の段階に合わせて送信）</label
+            ><select id="walkSpeed">
+              <option value="slow">ゆっくり</option>
+              <option value="normal" selected>標準</option>
+              <option value="slightly_fast">少し急ぐ</option>
+              <option value="fast">急ぐ</option></select
+            ><label style="margin-top: 10px">使う交通機関（押すと除外）</label>
             <div class="transport-row">
-                <span class="transport-chip" data-key="shinkansen" onclick="this.classList.toggle('off')">新幹線</span>
-                <span class="transport-chip" data-key="express" onclick="this.classList.toggle('off')">有料特急</span>
-                <span class="transport-chip" data-key="airplane" onclick="this.classList.toggle('off')">飛行機</span>
-                <span class="transport-chip" data-key="bus" onclick="this.classList.toggle('off')">路線バス</span>
-                <span class="transport-chip" data-key="highwaybus" onclick="this.classList.toggle('off')">高速バス</span>
-                <span class="transport-chip" data-key="ferry" onclick="this.classList.toggle('off')">フェリー</span>
+              <button
+                class="transport-chip"
+                data-key="shinkansen"
+                type="button"
+                onclick="toggleTransport(this)"
+                aria-pressed="true"
+              >
+                新幹線</button
+              ><button
+                class="transport-chip"
+                data-key="express"
+                type="button"
+                onclick="toggleTransport(this)"
+                aria-pressed="true"
+              >
+                有料特急</button
+              ><button
+                class="transport-chip"
+                data-key="airplane"
+                type="button"
+                onclick="toggleTransport(this)"
+                aria-pressed="true"
+              >
+                飛行機</button
+              ><button
+                class="transport-chip"
+                data-key="bus"
+                type="button"
+                onclick="toggleTransport(this)"
+                aria-pressed="true"
+              >
+                路線バス</button
+              ><button
+                class="transport-chip"
+                data-key="highwaybus"
+                type="button"
+                onclick="toggleTransport(this)"
+                aria-pressed="true"
+              >
+                高速バス</button
+              ><button
+                class="transport-chip"
+                data-key="ferry"
+                type="button"
+                onclick="toggleTransport(this)"
+                aria-pressed="true"
+              >
+                フェリー
+              </button>
             </div>
-            <div style="margin-bottom:8px;"><label>列車名指定（任意）</label><input type="text" id="trainName" placeholder="例: のぞみ, あずさ" /></div>
-            <div style="margin-bottom:8px;"><label>特殊きっぷ</label><select id="specialTicket"><option value="none">なし</option><option value="seishun18">青春18きっぷ</option><option value="freepass">フリーパス</option><option value="jrpass">JR Pass</option></select></div>
-            <div id="freepassSection" style="display:none;margin-bottom:8px;"><label>フリーパス名</label><input type="text" id="freepassName" placeholder="例: 東京フリーきっぷ" /></div>
-            <div id="commuterPassSection" style="display:none;margin-bottom:8px;">
-                <div class="options-grid"><div><label>定期 出発駅</label><input type="text" id="passFrom" placeholder="例: 渋谷" /></div><div><label>定期 到着駅</label><input type="text" id="passTo" placeholder="例: 新宿" /></div></div>
+            <p class="sub-text">
+              以下は検索先で確認する条件です。API接続では対応するまで検索を停止します。
+            </p>
+            <div class="check-row">
+              <label class="check-label"
+                ><input
+                  type="checkbox"
+                  id="optBarrierFree"
+                />段差の少ない経路</label
+              ><label class="check-label"
+                ><input type="checkbox" id="optAvoidDelay" />遅延を避ける</label
+              ><label class="check-label"
+                ><input
+                  type="checkbox"
+                  id="optCommuterPass"
+                />定期券区間を使う</label
+              >
             </div>
+            <div id="commuterPassSection" hidden>
+              <label for="passFrom">定期券区間の出発駅</label
+              ><input type="text" id="passFrom" maxlength="100" /><label
+                for="passTo"
+                >定期券区間の到着駅</label
+              ><input type="text" id="passTo" maxlength="100" />
+            </div>
+            <label for="trainName">指定列車</label
+            ><input
+              type="text"
+              id="trainName"
+              maxlength="100"
+              placeholder="例：のぞみ"
+            /><label for="specialTicket">特別なきっぷ</label
+            ><select id="specialTicket">
+              <option value="none">指定なし</option>
+              <option value="seishun18">青春18きっぷ</option>
+              <option value="freepass">フリーパス</option>
+              <option value="jrpass">ジャパンレールパス</option>
+            </select>
+            <div id="freepassSection" hidden>
+              <label for="freepassName">フリーパス名</label
+              ><input type="text" id="freepassName" maxlength="100" />
+            </div>
+          </details>
         </div>
-
-        <button class="search-btn" id="searchBtn" onclick="doSearch()">経路を検索</button>
-    </div>
-
-    <div class="alarm-bar" id="alarmBar"><div class="alarm-time" id="alarmTime">--:--</div><div class="alarm-label" id="alarmLabel">降車アラーム</div><button class="alarm-cancel" onclick="cancelAlarm()">解除</button></div>
-
-    <div id="verifyBadge" class="verify-badge" style="display:none;"></div>
-    <div class="toolbar" id="toolbar" style="display:none;">
-        <button class="tool-btn" onclick="searchShift(-1)">&#9664; 1本前</button>
-        <button class="tool-btn" onclick="searchShift(+1)">1本後 &#9654;</button>
-        <button class="tool-btn" onclick="checkServiceStatus()">運行情報</button>
-        <button class="tool-btn green2" onclick="openWalkNav()">徒歩ナビ</button>
-        <button class="tool-btn" onclick="copyResult()">コピー</button>
-        <button class="tool-btn" onclick="shareResult()">共有</button>
-        <button class="tool-btn orange" id="favBtn" onclick="toggleFavorite()">&#9734; お気に入り</button>
-        <button class="tool-btn orange" onclick="setAlarm()">降車アラーム</button>
-        <button class="tool-btn" style="color:#a78bfa;border-color:rgba(139,92,246,0.3);" onclick="addExpenseFromResult()">旅費メモ</button>
-    </div>
-
-    <div id="results"></div>
-
-    <div class="expense-bar" id="expenseBar" style="display:none;"><h4>旅費メモ</h4><div class="expense-list" id="expenseList"></div><div class="expense-total"><span>合計</span><span id="expenseTotal">¥0</span></div><div class="expense-actions"><button onclick="clearExpenses()">クリア</button><button onclick="copyExpenses()">コピー</button></div></div>
-    <div id="favSection" style="display:none;margin-bottom:10px;"><div class="section-title">お気に入りルート</div><div id="favList"></div></div>
-    <div id="historySection" style="display:none;"><div class="section-title">検索履歴</div><div id="historyList"></div></div>
-</div>
-
-<script>
-// ===== 路線カラーマップ =====
-const LINE_COLORS = {
-    '山手線':'#9acd32','中央線':'#f15a22','中央線快速':'#f15a22','京浜東北線':'#00b2e5','東海道線':'#f68b1e',
-    '総武線':'#ffd400','横須賀線':'#0067c0','埼京線':'#00ac9b','湘南新宿':'#e44d2e','常磐線':'#00b261',
-    '丸ノ内線':'#f62e36','銀座線':'#f39700','日比谷線':'#b5b5ac','東西線':'#009bbf','千代田線':'#00a650',
-    '有楽町線':'#c1a470','半蔵門線':'#8f76d6','南北線':'#00ada9','副都心線':'#9c5e31','都営浅草線':'#e85298',
-    '都営三田線':'#0079c2','都営新宿線':'#6cbb5a','都営大江戸線':'#b6007a',
-    '東急東横線':'#da0442','東急田園都市線':'#00a29a','小田急線':'#2b59a3','京王線':'#c9167e',
-    '西武池袋線':'#009944','西武新宿線':'#009944','東武東上線':'#0068b7','東武スカイツリーライン':'#0068b7',
-    '京急線':'#e5171f','京成線':'#003c8f','つくばエクスプレス':'#0054a7',
-    '東海道新幹線':'#005daa','東北新幹線':'#00a651','北陸新幹線':'#7b439a',
-    default:'#60a5fa'
-};
-const LINE_CODES = {
-    '山手線':'JY','京浜東北':'JK','中央線快速':'JC','中央線':'JC','中央・総武':'JB','総武線':'JB',
-    '東海道線':'JT','横須賀線':'JO','総武快速':'JO','埼京線':'JA','湘南新宿':'JS','京葉線':'JE',
-    '宇都宮線':'JU','高崎線':'JU','常磐線':'JJ','横浜線':'JH','南武線':'JN','武蔵野線':'JM',
-    '丸ノ内線':'M','銀座線':'G','日比谷線':'H','東西線':'T','千代田線':'C',
-    '有楽町線':'Y','半蔵門線':'Z','南北線':'N','副都心線':'F',
-    '都営浅草線':'A','都営三田線':'I','都営新宿線':'S','都営大江戸線':'E',
-    '東急東横線':'TY','東急田園都市線':'DT','東急目黒線':'MG','東急池上線':'IK','東急大井町線':'OM',
-    '小田急線':'OH','小田急':'OH','京王線':'KO','京王井の頭線':'IN',
-    '西武池袋線':'SI','西武新宿線':'SS','東武東上線':'TJ','東武スカイツリー':'TS','東武伊勢崎':'TS',
-    '京急線':'KK','京急':'KK','京成線':'KS','京成':'KS','つくばエクスプレス':'TX',
-    '東海道新幹線':'🚅','東北新幹線':'🚅','北陸新幹線':'🚅','上越新幹線':'🚅','山陽新幹線':'🚅','九州新幹線':'🚅',
-    '御堂筋線':'M','谷町線':'T','四つ橋線':'Y','中央線（大阪）':'C','千日前線':'S','堺筋線':'K','長堀鶴見緑地線':'N',
-    '阪急神戸線':'HK','阪急宝塚線':'HK','阪急京都線':'HK','阪神本線':'HS',
-    '近鉄':'A','南海':'NK','京阪':'KH',
-    '東山線':'H','名城線':'M','鶴舞線':'T','桜通線':'S',
-};
-function getLineColor(name) {
-    if (!name) return LINE_COLORS.default;
-    for (const [k,v] of Object.entries(LINE_COLORS)) { if (name.includes(k)) return v; }
-    return LINE_COLORS.default;
-}
-function getLineCode(name) {
-    if (!name) return '';
-    for (const [k,v] of Object.entries(LINE_CODES)) { if (name.includes(k)) return v; }
-    return '';
-}
-
-// ===== [修正3] 主要駅乗換時間テーブル =====
-const TRANSFER_TIMES = {
-    '東京_京葉線': 15, '東京': 8, '新宿': 7, '渋谷': 6, '池袋': 6,
-    '品川': 5, '横浜': 6, '大手町': 7, '上野': 5, '北千住': 5,
-    '大宮': 6, '武蔵小杉': 5, '中野': 4, '秋葉原': 5,
-    '名古屋': 8, '大阪': 10, '梅田': 8, '難波': 6, '天王寺': 5,
-    '京都': 7, '三宮': 5, '博多': 7, '札幌': 6, '仙台': 6,
-    'default': 5
-};
-function getTransferMinutes(stationName, fromLine, toLine) {
-    if (!stationName) return TRANSFER_TIMES.default;
-    // 京葉線乗換の特殊処理
-    if (stationName.includes('東京') && ((fromLine||'')+'|'+(toLine||'')).includes('京葉')) {
-        return TRANSFER_TIMES['東京_京葉線'];
-    }
-    for (const [k,v] of Object.entries(TRANSFER_TIMES)) {
-        if (k !== 'default' && !k.includes('_') && stationName.includes(k)) return v;
-    }
-    return TRANSFER_TIMES.default;
-}
-
-// ===== 状態 =====
-let lastSearchParams = null, lastResultText = '', alarmTimer = null, currentMode = 'route';
-let lastParsedRoutes = null;
-let verifyAbort = null;
-// [修正2] 区間分割検索フラグ（運賃注記表示用）
-let isSegmentedResult = false;
-
-// ===== 初期化 =====
-function updateNow() { const n=new Date(); document.getElementById('date').value=n.toISOString().split('T')[0]; document.getElementById('time').value=n.toTimeString().slice(0,5); }
-updateNow();
-(function tick(){const n=new Date();document.getElementById('liveClock').textContent=`(${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')})`;setTimeout(tick,1000);})();
-
-const savedKey=localStorage.getItem('openai_api_key'); if(savedKey)document.getElementById('apiKey').value=savedKey;
-document.getElementById('apiKey').addEventListener('change',e=>localStorage.setItem('openai_api_key',e.target.value.trim()));
-const savedTimeout=localStorage.getItem('openai_timeout'); if(savedTimeout)document.getElementById('timeoutSec').value=savedTimeout;
-document.getElementById('timeoutSec').addEventListener('change',e=>localStorage.setItem('openai_timeout',e.target.value));
-const savedOdpt=localStorage.getItem('odpt_key'); if(savedOdpt)document.getElementById('odptKey').value=savedOdpt;
-document.getElementById('odptKey').addEventListener('change',e=>localStorage.setItem('odpt_key',e.target.value.trim()));
-document.getElementById('optCommuterPass').addEventListener('change',e=>{document.getElementById('commuterPassSection').style.display=e.target.checked?'block':'none';});
-document.getElementById('specialTicket').addEventListener('change',e=>{document.getElementById('freepassSection').style.display=e.target.value==='freepass'?'block':'none';});
-loadHistory(); loadFavorites(); loadExpenses();
-
-// ===== モード =====
-function setMode(mode){
-    currentMode=mode;
-    document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active'));
-    document.getElementById('mode'+mode.charAt(0).toUpperCase()+mode.slice(1)).classList.add('active');
-    const show=(id,v)=>{const el=document.getElementById(id);if(el)el.style.display=v?'':'none';};
-    show('viaRow',mode==='route');show('checkRow',mode==='route');
-    document.getElementById('detailSection').classList.remove('open');
-    const db=document.querySelector('.detail-toggle');db.style.display=mode==='route'?'':'none';db.textContent='▶ 詳細設定';
-    const btn=document.getElementById('searchBtn');
-    btn.textContent={route:'経路を検索',timetable:'時刻表を検索',commuter:'定期代を検索',status:'運行情報を取得'}[mode];
-}
-
-function setPriority(val, btn) {
-    document.getElementById('priority').value = val;
-    document.querySelectorAll('#priorityBtns .tool-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-}
-
-// ===== 音声・入れ替え =====
-function voiceInput(id){if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){alert('音声入力非対応');return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const r=new SR();r.lang='ja-JP';r.onresult=e=>{document.getElementById(id).value=e.results[0][0].transcript.replace(/駅$/,'').trim();};r.onerror=()=>{};r.start();}
-function swapStations(){const f=document.getElementById('fromStation'),t=document.getElementById('toStation');[f.value,t.value]=[t.value,f.value];}
-function getApiKey(){const k=document.getElementById('apiKey').value.trim();if(!k){document.getElementById('settingsPanel').classList.add('open');document.getElementById('apiKey').focus();}return k;}
-
-// ===== [修正6] GPS → HeartRails Express API で最寄り駅検索 =====
-async function detectStation(){
-    const btn=document.getElementById('gpsBtn'),st=document.getElementById('gpsStatus');st.style.display='block';
-    if(!navigator.geolocation){st.textContent='GPS非対応';st.className='sub-text err';return;}
-    btn.disabled=true;btn.classList.add('locating');btn.textContent='...';st.textContent='位置情報を取得中...';st.className='sub-text';
-    try {
-        const pos = await new Promise((ok,ng)=>navigator.geolocation.getCurrentPosition(ok,ng,{enableHighAccuracy:true,timeout:15000,maximumAge:0}));
-        const lat=pos.coords.latitude, lng=pos.coords.longitude;
-        st.textContent=`${lat.toFixed(4)}, ${lng.toFixed(4)} — 最寄り駅を検索中...`;
-
-        // HeartRails Express API（無料・登録不要）で最寄り駅を取得
-        const url = `https://express.heartrails.com/api/json?method=getStations&x=${lng}&y=${lat}`;
-        const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-        if (!res.ok) throw new Error(`HeartRails API Error: ${res.status}`);
-        const data = await res.json();
-
-        if (data.response && data.response.station && data.response.station.length > 0) {
-            const nearest = data.response.station[0];
-            const name = nearest.name.replace(/駅$/, '');
-            document.getElementById('fromStation').value = name;
-            const dist = nearest.distance ? ` (${nearest.distance})` : '';
-            st.textContent = `最寄り駅: ${name}${dist} [${nearest.line || ''}]`;
-            st.className = 'sub-text ok';
-        } else {
-            // HeartRails失敗時 → LLMフォールバック
-            const apiKey = getApiKey();
-            if (!apiKey) { st.textContent='APIキーを先に設定'; st.className='sub-text err'; return; }
-            const aiData = await callAPI(apiKey, `緯度${lat}, 経度${lng}に最も近い日本の鉄道駅名を1つだけ（「駅」除く）答えて。例:渋谷`, 'low', 256);
-            let name = (aiData.output_text||'').trim().replace(/駅$/,'').split('\n')[0].trim();
-            document.getElementById('fromStation').value = name;
-            st.textContent = `最寄り駅: ${name}（AI推定）`; st.className = 'sub-text ok';
-        }
-    } catch(err) {
-        const errMsg = ({1:'位置情報の許可が必要',2:'位置情報が利用不可',3:'タイムアウト'})[err.code] || err.message || '取得失敗';
-        st.textContent = errMsg; st.className = 'sub-text err';
-    } finally {
-        btn.disabled=false; btn.classList.remove('locating'); btn.textContent='GPS';
-    }
-}
-
-// ===== 検索ディスパッチ =====
-function doSearch(){({route:searchRoute,timetable:searchTimetable,commuter:searchCommuter,status:checkServiceStatus})[currentMode]();}
-
-async function searchRoute(overrideTime){
-    const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');return;}
-    const from=document.getElementById('fromStation').value.trim(),to=document.getElementById('toStation').value.trim();
-    if(!from||!to){showError('出発駅と到着駅を入力してください。');return;}
-    if(!overrideTime)updateNow();
-    const date=document.getElementById('date').value,time=overrideTime||document.getElementById('time').value;
-    const via=document.getElementById('viaStation').value.trim();
-    const sel=id=>{const s=document.getElementById(id);return s.options[s.selectedIndex].text;};
-    lastSearchParams={from,to,via,date,time,timeTypeText:sel('timeType'),priorityText:sel('priority'),walkText:sel('walkSpeed'),
-        barrierFree:document.getElementById('optBarrierFree').checked,boardingPos:document.getElementById('optBoardingPos').checked,
-        doorSide:document.getElementById('optDoorSide').checked,crowding:true,
-        avoidDelay:document.getElementById('optAvoidDelay').checked,commuterPass:document.getElementById('optCommuterPass').checked,
-        passFrom:document.getElementById('passFrom').value.trim(),passTo:document.getElementById('passTo').value.trim(),
-        excluded:[...document.querySelectorAll('.transport-chip.off')].map(c=>c.dataset.key),
-        trainName:document.getElementById('trainName').value.trim(),specialTicket:document.getElementById('specialTicket').value,
-        freepassName:document.getElementById('freepassName').value.trim()};
-    addHistory(from,to);
-
-    const viaStations = via ? via.split(/[,、，\s]+/).filter(s=>s).map(s=>s.replace(/駅$/,'')) : [];
-    if(viaStations.length){
-        isSegmentedResult = true;
-        await runSegmentedSearch(apiKey, lastSearchParams, [from, ...viaStations, to]);
-    } else {
-        isSegmentedResult = false;
-        await runSearch(buildRoutePrompt(lastSearchParams),true);
-    }
-}
-async function searchTimetable(){
-    const from=document.getElementById('fromStation').value.trim();
-    if(!from){showError('駅名を入力してください。');return;}
-    const to=document.getElementById('toStation').value.trim();
-    setLoading(true);
-    try {
-        const odptData = await fetchOdptStationTimetable(from);
-        const odptHtml = renderOdptTimetable(odptData, from);
-        if (odptHtml) {
-            document.getElementById('results').innerHTML = odptHtml;
-            document.getElementById('toolbar').style.display = 'none';
-            return;
-        }
-    } catch {}
-    const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');setLoading(false);return;}
-    try {
-        const data=await callAPI(apiKey,`ウェブ検索で${from}駅${to?'から'+to+'方面':''}の本日(${document.getElementById('date').value})の時刻表を調べて。直近10本を表形式(時刻|路線|種別|行先|番線)で、始発終電も記載。日本語で回答。`,'medium',16000);
-        lastResultText=data.output_text||'';displayFallback(data);document.getElementById('toolbar').style.display='none';
-    } catch(err){showError(`エラー: ${err.message}`);}
-    finally{setLoading(false);}
-}
-async function searchCommuter(){const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');return;}const from=document.getElementById('fromStation').value.trim(),to=document.getElementById('toStation').value.trim();if(!from||!to){showError('出発駅と到着駅を入力してください。');return;}await runSearch(`ウェブ検索で${from}駅〜${to}駅の通勤定期代を調べて。表形式(ルート|1ヶ月|3ヶ月|6ヶ月)で複数ルート提示。通学定期(大学)も併記。日本語で回答。`);}
-async function checkServiceStatus(){
-    const from=document.getElementById('fromStation').value.trim(),to=document.getElementById('toStation').value.trim();
-    if(currentMode==='status'){
-        setLoading(true);
-        try {
-            const odptData = await fetchOdptTrainInfo();
-            const odptHtml = renderOdptTrainInfo(odptData);
-            if (odptHtml) {
-                document.getElementById('results').innerHTML = odptHtml;
-                document.getElementById('toolbar').style.display = 'none';
-                setLoading(false);
-                return;
-            }
-        } catch(err) { console.warn('[ODPT] 運行情報取得失敗:', err.message); }
-        const apiKey=getApiKey();if(!apiKey){showError('APIキーを設定してください。');setLoading(false);return;}
-        const area=from||to||'首都圏';
-        try{const data=await callAPI(apiKey,`ウェブ検索で${area}エリアの鉄道の最新運行情報をまとめて。遅延・運休路線をリスト、異常なしは「平常運転」。日本語で回答。`,'medium',8000);lastResultText=data.output_text||'';displayFallback(data);document.getElementById('toolbar').style.display='none';}catch(err){showError(`エラー: ${err.message}`);}finally{setLoading(false);}
-        return;
-    }
-    const banner=document.getElementById('infoBanner');banner.className='info-banner show';banner.textContent='運行情報を確認中...';
-    try {
-        const odptData = await fetchOdptTrainInfo();
-        if (odptData && odptData.length) {
-            const alerts = odptData.filter(i => i['odpt:trainInformationText'] && !['平常運転','平常'].includes(i['odpt:trainInformationText']?.trim().slice(0,4)));
-            if (alerts.length === 0) {
-                banner.innerHTML = '<strong>運行情報:</strong> 全路線 平常運転（ODPT）';
-                banner.className = 'info-banner show ok';
-            } else {
-                banner.innerHTML = '<strong>運行情報（ODPT）:</strong><br>' + alerts.slice(0,5).map(a => {
-                    const line = a['odpt:railway']?.split('.').pop()||'';
-                    const text = a['odpt:trainInformationText']||'';
-                    return `${esc(line)}: ${esc(text.slice(0,80))}`;
-                }).join('<br>');
-                banner.className = 'info-banner show';
-            }
-            return;
-        }
-    } catch(err) { console.warn('[ODPT] 運行情報取得失敗:', err.message); }
-    const apiKey=getApiKey();if(!apiKey){banner.textContent='APIキー未設定';return;}
-    try{const data=await callAPI(apiKey,`${from}駅から${to}駅で利用する路線の現在の運行情報をウェブ検索して簡潔にまとめて。異常なしなら「平常運転」。`,'low',2000);const txt=data.output_text||'取得できませんでした';banner.innerHTML='<strong>運行情報:</strong> '+escapeHtml(txt).replace(/\n/g,'<br>');banner.className=txt.includes('平常')?'info-banner show ok':'info-banner show';}catch{banner.textContent='運行情報の取得に失敗';}
-}
-
-// ===== [修正2] 経由駅あり: 区間ごとに直列API呼び出し（前区間の到着時刻を次区間の出発条件にする） =====
-async function runSegmentedSearch(apiKey, params, stations){
-    if(verifyAbort){verifyAbort.abort();verifyAbort=null;}
-    setLoading(true);
-    const segments = [];
-    for(let i=0;i<stations.length-1;i++){
-        segments.push({from: stations[i], to: stations[i+1]});
-    }
-    console.log('[Segmented] 区間:', segments.map(s=>`${s.from}→${s.to}`).join(', '));
-
-    try{
-        const allSegRoutes = [];
-        let currentDepartureTime = params.time; // 最初は指定時刻
-
-        // [修正2] 直列実行: 前区間の到着時刻を次区間の出発時刻に使う
-        for(let idx=0; idx<segments.length; idx++){
-            const seg = segments[idx];
-            const segParams = {...params, from: seg.from, to: seg.to, via: '', time: currentDepartureTime, timeTypeText: '出発時刻指定'};
-            const prompt = buildRoutePrompt(segParams);
-            console.log(`[Segmented] 区間${idx+1} (${seg.from}→${seg.to}) 出発時刻=${currentDepartureTime} 検索開始`);
-
-            const data = await callAPI(apiKey, prompt, 'high', 16000);
-            console.log(`[Segmented] 区間${idx+1} output_text length:`, (data.output_text||'').length);
-
-            const text = data.output_text || '';
-            let parsed = null;
-            try{
-                let cleaned = text.replace(/【[^】]*】/g, '');
-                let jsonStr = cleaned;
-                const m1 = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
-                if(m1) jsonStr = m1[1];
-                else { const m2 = cleaned.match(/\{[\s\S]*?"routes"\s*:\s*\[[\s\S]*\]/); if(m2){ let s=m2[0],depth=0,end=0; for(let j=0;j<s.length;j++){if(s[j]==='{')depth++;else if(s[j]==='}'){depth--;if(depth===0){end=j+1;break;}}} if(end>0)jsonStr=s.slice(0,end); }}
-                jsonStr = jsonStr.trim().replace(/,\s*([}\]])/g, '$1');
-                parsed = JSON.parse(jsonStr);
-            }catch(e){ console.log(`[Segmented] 区間${idx+1} JSON解析失敗:`, e.message); }
-
-            if(parsed && parsed.routes && parsed.routes.length){
-                const route = parsed.routes[0];
-                allSegRoutes.push({segIndex:idx, from:seg.from, to:seg.to, route});
-
-                // [修正2] 到着時刻を取得して次区間の出発時刻に設定
-                const arrivalTime = route.arrival;
-                if(arrivalTime && idx < segments.length - 1){
-                    // 到着時刻に乗換時間を加算して次区間の出発時刻にする
-                    const lastRideSeg = (route.segments||[]).filter(s=>s.type==='ride').pop();
-                    const prevLine = lastRideSeg ? lastRideSeg.line : '';
-                    const transferMin = getTransferMinutes(seg.to, prevLine, '');
-                    currentDepartureTime = addMinutesToTime(arrivalTime, transferMin);
-                    console.log(`[Segmented] 区間${idx+1} 到着=${arrivalTime} → 乗換${transferMin}分 → 次区間出発=${currentDepartureTime}`);
-                }
-            } else {
-                console.log(`[Segmented] 区間${idx+1} (${seg.from}→${seg.to}) 取得失敗 → 一括検索にフォールバック`);
-                await runSearch(buildRoutePrompt(params), true);
-                return;
-            }
-        }
-
-        // 全区間成功 → 結合
-        console.log('[Segmented] 全区間成功 → 結合');
-        const combined = combineSegmentRoutes(allSegRoutes);
-
-        // [修正2] 接続時刻の整合性検証
-        const timeErrors = validateSegmentConnections(allSegRoutes);
-        if(timeErrors.length){
-            combined.routes[0].notes = combined.routes[0].notes || [];
-            timeErrors.forEach(e => combined.routes[0].notes.push(e));
-        }
-
-        const fakeData = {output_text: JSON.stringify(combined)};
-        lastResultText = fakeData.output_text;
-        lastParsedRoutes = combined;
-        renderRouteCards(combined, fakeData);
-        document.getElementById('toolbar').style.display='flex';updateFavBtn();
-        saveCacheWithKey(lastSearchParams, lastResultText, lastParsedRoutes);
-
-        console.log('[Segmented] → Step2検証を開始');
-        startVerification(apiKey, combined);
-    }catch(err){
-        console.log('[Segmented] エラー:', err);
-        showError(`エラー: ${err.message}`);
-    }finally{setLoading(false);}
-}
-
-// [修正2] 時刻に分を加算するユーティリティ
-function addMinutesToTime(timeStr, minutes) {
-    const [h,m] = (timeStr||'0:0').split(':').map(Number);
-    const total = h * 60 + m + minutes;
-    const nh = Math.floor(total / 60) % 24;
-    const nm = total % 60;
-    return `${String(nh).padStart(2,'0')}:${String(nm).padStart(2,'0')}`;
-}
-
-// [修正2] 区間間の接続時刻を検証
-function validateSegmentConnections(segRoutes) {
-    const errors = [];
-    for(let i=0; i<segRoutes.length-1; i++){
-        const prevArr = segRoutes[i].route.arrival;
-        const nextDep = segRoutes[i+1].route.departure;
-        if(prevArr && nextDep){
-            const prevMin = timeToMin(prevArr);
-            const nextMin = timeToMin(nextDep);
-            // 日付またぎ考慮（6時間以上の差があれば日付またぎとみなす）
-            const diff = nextMin >= prevMin ? nextMin - prevMin : nextMin + 1440 - prevMin;
-            if(diff < 0 || (nextMin < prevMin && diff > 360)){
-                errors.push(`⚠ 区間${i+1}の到着(${prevArr})と区間${i+2}の出発(${nextDep})の接続に矛盾があります`);
-            }
-            if(diff < 2 && diff >= 0){
-                errors.push(`⚠ ${segRoutes[i].to}での乗換時間が${diff}分と非常に短いです。余裕を持った行動をお勧めします`);
-            }
-        }
-    }
-    return errors;
-}
-
-function combineSegmentRoutes(segRoutes){
-    const allSegments = [];
-    let totalFare = 0, totalIcFare = 0, totalTransfers = 0;
-    const dep = segRoutes[0].route.departure;
-    const arr = segRoutes[segRoutes.length-1].route.arrival;
-
-    segRoutes.forEach((sr, idx) => {
-        const r = sr.route;
-        const fareNum = parseInt((r.fare||'').replace(/[^0-9]/g,''))||0;
-        const icFareNum = parseInt((r.icFare||'').replace(/[^0-9]/g,''))||0;
-        totalFare += fareNum;
-        totalIcFare += icFareNum;
-        totalTransfers += (r.transfers||0);
-
-        if(r.segments) r.segments.forEach(s => allSegments.push(s));
-
-        // [修正3] 乗換時間を駅テーブルから取得
-        if(idx < segRoutes.length - 1){
-            const lastSeg = r.segments?.[r.segments.length-1];
-            if(lastSeg && lastSeg.type !== 'transfer'){
-                const prevLine = lastSeg ? lastSeg.line : '';
-                const nextRoute = segRoutes[idx+1].route;
-                const nextFirstRide = (nextRoute.segments||[]).find(s=>s.type==='ride');
-                const nextLine = nextFirstRide ? nextFirstRide.line : '';
-                const transferMin = getTransferMinutes(sr.to, prevLine, nextLine);
-                totalTransfers++;
-                allSegments.push({type:'transfer', station: sr.to, minutes: transferMin});
-            }
-        }
-    });
-
-    const depMin = timeToMin(dep), arrMin = timeToMin(arr);
-    const diff = arrMin >= depMin ? arrMin - depMin : arrMin + 1440 - depMin;
-    const durH = Math.floor(diff/60), durM = diff%60;
-    const duration = durH > 0 ? `${durH}時間${durM}分` : `${durM}分`;
-
-    return {
-        routes: [{
-            departure: dep, arrival: arr, duration,
-            transfers: totalTransfers,
-            fare: `${totalFare}円`, icFare: `${totalIcFare}円`,
-            expressFare: null,
-            segments: allSegments,
-            notes: ['経由駅指定のため区間分割検索で結合', '※運賃は区間ごとの合算です。通し運賃とは異なる場合があります']
-        }],
-        serviceInfo: '平常運転'
-    };
-}
-
-function timeToMin(t){ const [h,m]=(t||'0:0').split(':').map(Number); return h*60+m; }
-
-async function runSearch(prompt,isRoute){
-    const apiKey=getApiKey();if(!apiKey)return;
-    if(verifyAbort){verifyAbort.abort();verifyAbort=null;}
-    setLoading(true);
-    try{
-        console.log('[Step1] gpt-4o-mini-search 検索開始');
-        const data=await callAPI(apiKey,prompt,'high',16000);lastResultText=data.output_text||'';
-        console.log('[Step1] output_text length:', lastResultText.length);
-
-        if(isRoute){
-            displayRouteResult(data);
-            if(lastParsedRoutes){
-                document.getElementById('toolbar').style.display='flex';updateFavBtn();
-                console.log('[Step1] JSON成功 → Step2検証を開始');
-                startVerification(apiKey, lastParsedRoutes);
-            } else {
-                console.log('[Step1] JSON失敗 → Step2フル検索にフォールバック');
-                document.getElementById('toolbar').style.display='flex';updateFavBtn();
-                startFullFallback(apiKey, prompt);
-            }
-        } else {
-            displayFallback(data);
-            document.getElementById('toolbar').style.display='none';
-        }
-        if(lastResultText) saveCacheWithKey(lastSearchParams, lastResultText, lastParsedRoutes);
-    }catch(err){showError(`エラー: ${err.message}`);}finally{setLoading(false);}
-}
-
-async function startFullFallback(apiKey, prompt){
-    const badge = document.getElementById('verifyBadge');
-    if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> GPT-5.4 miniで再検索中...';}
-    verifyAbort = new AbortController();
-    try{
-        console.log('[Step2-Fallback] GPT-5.4 mini開始');
-        const data = await callResponsesAPI(apiKey, prompt, MODEL_VERIFY, 16000, verifyAbort.signal, 'high', 'medium');
-        lastResultText = data.output_text || '';
-        displayRouteResult(data);
-        if(lastParsedRoutes){
-            if(badge){badge.className='verify-badge corrected';badge.innerHTML='✓ GPT-5.4 miniで再取得済み';}
-        } else {
-            displayFallback(data);
-            if(badge){badge.className='verify-badge done';badge.innerHTML='検索完了（テキスト表示）';}
-        }
-    }catch(err){
-        if(err.name==='AbortError')return;
-        console.log('[Step2-Fallback] error:', err);
-        if(badge){badge.className='verify-badge done';badge.innerHTML='再検索失敗';}
-    }
-}
-
-async function startVerification(apiKey, routes){
-    const badge = document.getElementById('verifyBadge');
-    if(badge){badge.style.display='inline-flex';badge.className='verify-badge verifying';badge.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> GPT-5.4 miniで検証中...';}
-    verifyAbort = new AbortController();
-    const p = lastSearchParams;
-    const routesSummary = JSON.stringify(routes, null, 0).slice(0, 3000);
-    const verifyRoute = p.via ? `${p.from}駅→${p.via.split(/[,、，\s]+/).filter(s=>s).join('→')}→${p.to}駅` : `${p.from}駅→${p.to}駅`;
-    const verifyPrompt = `あなたは日本の電車乗り換え案内の専門家です。以下の検索結果をウェブ検索で検証してください。
-
-【検索条件】${verifyRoute} ${p.date} ${p.time}${p.via?`\n※経由駅（${p.via}）を必ず通るルートであることを検証してください。経由駅を通っていないルートは修正が必要です。`:''}
-
-【検索結果（検証対象）】
-${routesSummary}
-
-【指示】
-上記の結果をウェブ検索で検証し、修正が必要な場合のみ以下のJSON形式で回答してください。
-修正不要なら {"noChange": true} のみ返してください。
-
-修正がある場合:
-\`\`\`json
-{
-  "corrections": [
-    {
-      "routeIndex": 0,
-      "field": "修正箇所の説明",
-      "segmentIndex": 0,
-      "updates": { "修正するフィールド名": "修正値" }
-    }
-  ],
-  "additions": {
-    "serviceInfo": "最新の運行情報があれば"
-  }
-}
-\`\`\`
-
-特に以下を重点検証:
-- 番線（ホーム番号）の正確性
-- 中間駅の到着時刻
-- 運賃の正確性
-- 現在の遅延・運行情報`;
-
-    try{
-        const data = await callResponsesAPI(apiKey, verifyPrompt, MODEL_VERIFY, 4000, verifyAbort.signal, 'medium', 'medium');
-        const text = data.output_text || '';
-        console.log('[Verify] response:', text.slice(0, 300));
-
-        let cleaned = text.replace(/【[^】]*】/g, '');
-        let result = null;
-        try {
-            const m = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
-            result = JSON.parse(m ? m[1] : cleaned.trim());
-        } catch { try { result = JSON.parse(cleaned.trim()); } catch {} }
-
-        if (!result) {
-            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ GPT-5.4 miniで検証済み';}
-            return;
-        }
-        if (result.noChange) {
-            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ 検証済み（修正なし）';}
-            return;
-        }
-
-        let correctionCount = 0;
-        if (result.corrections && result.corrections.length) {
-            result.corrections.forEach(c => {
-                const route = lastParsedRoutes.routes[c.routeIndex];
-                if (!route) return;
-                if (c.segmentIndex != null && route.segments && route.segments[c.segmentIndex] && c.updates) {
-                    Object.assign(route.segments[c.segmentIndex], c.updates);
-                    correctionCount++;
-                }
-                if (c.updates && c.updates.fare) { route.fare = c.updates.fare; correctionCount++; }
-                if (c.updates && c.updates.icFare) { route.icFare = c.updates.icFare; correctionCount++; }
-            });
-        }
-        if (result.additions && result.additions.serviceInfo) {
-            lastParsedRoutes.serviceInfo = result.additions.serviceInfo;
-            correctionCount++;
-        }
-        if (correctionCount > 0) {
-            displayRouteResultFromParsed(lastParsedRoutes);
-            if(badge){badge.className='verify-badge corrected';badge.innerHTML=`✓ GPT-5.4 miniで${correctionCount}件修正済み`;}
-        } else {
-            if(badge){badge.className='verify-badge done';badge.innerHTML='✓ GPT-5.4 miniで検証済み';}
-        }
-    } catch(err) {
-        if(err.name==='AbortError') return;
-        console.log('[Verify] error:', err);
-        if(badge){badge.className='verify-badge done';badge.innerHTML='検証スキップ';}
-    }
-}
-
-
-function setLoading(on){const btn=document.getElementById('searchBtn');if(on){btn.disabled=true;btn.innerHTML='<span class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;"></span> 検索中...';document.getElementById('results').innerHTML='<div class="result-card loading"><div class="spinner"></div><p>検索中...</p></div>';document.getElementById('verifyBadge').style.display='none';}else{btn.disabled=false;btn.textContent={route:'経路を検索',timetable:'時刻表を検索',commuter:'定期代を検索',status:'運行情報を取得'}[currentMode];}}
-
-function searchShift(dir){if(!lastSearchParams)return;const[hh,mm]=lastSearchParams.time.split(':').map(Number);const d=new Date(2000,0,1,hh,mm+dir*5);const t=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;document.getElementById('time').value=t;searchRoute(t);}
-
-// ===== プロンプト（JSON出力要求） =====
-function buildRoutePrompt(p){
-    let extra='';
-    if(p.via)extra+=`\n- 経由駅: ${p.via}`;
-    if(p.barrierFree)extra+='\n- バリアフリー優先（エレベーター・エスカレーター優先、階段回避）';
-    if(p.avoidDelay)extra+='\n- 遅延・運休路線を回避した迂回ルートを提示';
-    if(p.commuterPass&&p.passFrom&&p.passTo)extra+=`\n- 定期券区間: ${p.passFrom}駅〜${p.passTo}駅（区間外の追加運賃を計算）`;
-    const tn={shinkansen:'新幹線',express:'有料特急',airplane:'飛行機',bus:'路線バス',highwaybus:'高速バス',ferry:'フェリー'};
-    if(p.excluded.length)extra+=`\n- 除外: ${p.excluded.map(k=>tn[k]).join('、')}`;
-    if(p.trainName)extra+=`\n- 列車名指定: ${p.trainName}`;
-    if(p.specialTicket==='seishun18')extra+='\n- 青春18きっぷ利用（JR普通・快速のみ）';
-    if(p.specialTicket==='jrpass')extra+='\n- JR Pass利用（のぞみ・みずほ不可）';
-    if(p.specialTicket==='freepass'&&p.freepassName)extra+=`\n- フリーパス: ${p.freepassName}`;
-    const wm={'ゆっくり':'乗り換え時間に余裕を持たせて','少しゆっくり':'やや遅めの歩行で計算','標準':'','少し急ぎ':'早歩きで計算','急いで':'走る想定で最短乗り換え'};
-
-    let optFields = '';
-    if(p.boardingPos) optFields += ', "boardingPosition": "乗車位置（前寄り等）"';
-    if(p.doorSide) optFields += ', "doorSide": "ドア開方向（左/右）"';
-    if(p.crowding) optFields += ', "crowding": "1〜5の整数値（必須。1=空いている,2=余裕あり,3=普通,4=混雑,5=非常に混雑）"';
-
-    const viaStations = p.via ? p.via.split(/[,、，\s]+/).filter(s=>s) : [];
-    const routeExpr = viaStations.length
-        ? `${p.from}駅 → ${viaStations.map(s=>s.replace(/駅$/,'')+'駅').join(' → ')} → ${p.to}駅`
-        : `${p.from}駅 → ${p.to}駅`;
-
-    let viaInstruction = '';
-    if(viaStations.length){
-        viaInstruction = `\n\n【経由駅に関する重要な制約】
-経由駅（${viaStations.join('、')}）を必ず通るルートを検索してください。
-- 各ルートは必ず指定された経由駅を順番に通過する必要があります
-- 経由駅では乗換（transferセグメント）を挟んでください
-- 直通路線がない場合は、経由駅を通る乗り換えルートを提示してください
-- 経由駅を通らないルートは絶対に提示しないでください`;
-    }
-
-    return `あなたは日本の電車乗り換え案内の専門家です。必ずウェブ検索で乗り換え検索サイトの実際の検索結果を参照して回答してください。
-
-【絶対禁止事項】
-- 自分の知識や推測で経路・時刻・運賃を作り上げないでください。全ての情報はウェブ検索結果から取得してください。
-- ウェブ検索で確認できない時刻や路線を捏造しないでください。不明な場合は"要確認"と記載してください。
-- 存在しない直通列車や架空の路線を絶対に回答に含めないでください。
-
-【最重要】到着駅は必ず「${p.to}駅」でなければなりません。似た名前の別の駅を絶対に混同しないでください。最終segmentの"to"が「${p.to}」であることを必ず確認してください。
-
-【検索手順】
-1. まず「${p.from}駅から${p.to}駅 乗り換え」でウェブ検索してください
-2. Yahoo乗換案内・ジョルダン・NAVITIME・駅探等の検索結果ページから、発着時刻・路線名・乗換駅・運賃を正確に読み取ってください
-3. 特に発着時刻（departureTime, arrivalTime）は検索結果に記載された実際のダイヤを使ってください。推測で時刻を埋めないでください
-4. 検索結果が見つからない場合は「${p.from} ${p.to} 電車 行き方」でも検索してください
-5. 全ての鉄道会社（JR・私鉄・地下鉄・第三セクター・新幹線等）の路線を含めて検索してください
-6. 長距離の場合は新幹線ルートを優先的に検索してください
-
-【条件】
-- ${routeExpr}
-- ${p.date} ${p.time}（${p.timeTypeText}）
-- 優先: ${p.priorityText} / 歩行: ${p.walkText}${extra}
-${wm[p.walkText]||''}${viaInstruction}
-
-【重要】必ず以下のJSON形式のみで回答してください。JSONの前後に説明文は不要です。
-
-\`\`\`json
-{
-  "routes": [
-    {
-      "departure": "HH:MM",
-      "arrival": "HH:MM",
-      "duration": "所要時間テキスト",
-      "transfers": 乗換回数(数値),
-      "fare": "運賃テキスト",
-      "icFare": "IC運賃テキスト",
-      "expressFare": "特急料金（なければnull）",
-      "segments": [
-        {
-          "type": "ride",
-          "from": "駅名",
-          "fromPlatform": "○番線",
-          "to": "駅名",
-          "toPlatform": "○番線",
-          "line": "路線名",
-          "lineCode": "路線記号（例: JY, M, G, TY, OH等。不明なら空文字）",
-          "direction": "○○方面",
-          "trainType": "種別（快速等）",
-          "departureTime": "HH:MM",
-          "arrivalTime": "HH:MM",
-          "stops": [
-            {"name": "途中駅名", "time": "HH:MM"},
-            {"name": "途中駅名", "time": "HH:MM"}
-          ]${optFields},
-          "delay": null または {"minutes": 遅延分数, "reason": "遅延理由（簡潔に）"}
-        },
-        {
-          "type": "transfer",
-          "station": "乗換駅名",
-          "minutes": 乗換時間(数値)
-        }
-      ],
-      "notes": ["注意事項があれば"]
-    }
-  ],
-  "serviceInfo": "運行情報（異常なしなら'平常運転'）"
-}
-\`\`\`
-
-最大3ルート。各rideセグメントのstopsには出発駅・到着駅を除く全ての途中停車駅と各駅の到着予想時刻を含めてください。番線はウェブ検索で調べ、不明なら"要確認"。
-
-【混雑度について】各rideセグメントに必ず"crowding"フィールド（1〜5の整数）を含めてください。時間帯・路線・方面から推定してください。朝ラッシュ（7:30-9:30）や夕ラッシュ（17:00-20:00）の都心方面は4〜5、逆方向や日中は1〜3が目安です。
-
-【遅延情報について】各rideセグメントの路線に現在遅延・運転見合わせがあるかウェブ検索で確認してください。遅延がある場合は"delay": {"minutes": 遅延分数, "reason": "理由"}を設定。遅延がなければ"delay": nullとしてください。
-
-【正確性に関する絶対ルール】
-- 実在しない直通列車を絶対に捏造しないでください。ウェブ検索で確認できた実在する列車・路線のみ使用してください。
-- 各rideセグメントの"from"と"to"は、その路線で実際に直通で行ける区間でなければなりません。
-- 途中で乗り換えが必要な場合は、必ずtransferセグメントを挟んで複数のrideに分けてください。
-- 除外した交通手段（新幹線等）を使わずに到達不可能または非現実的に長時間かかる場合は、notesに「除外条件により大幅に所要時間が増加します」と記載してください。`;
-}
-
-// ===== ODPT API =====
-const ODPT_PUBLIC = 'https://api-public.odpt.org/api/v4/';
-const ODPT_AUTH = 'https://api.odpt.org/api/v4/';
-function getOdptBase() { const key = document.getElementById('odptKey').value.trim(); return key ? ODPT_AUTH : ODPT_PUBLIC; }
-function odptKeyParam() { const key = document.getElementById('odptKey').value.trim(); return key ? `&acl:consumerKey=${encodeURIComponent(key)}` : ''; }
-
-// [修正9] ODPT APIエラーハンドリング改善
-async function fetchOdptTrainInfo() {
-    try {
-        const url = `${getOdptBase()}odpt:TrainInformation?${odptKeyParam()}`;
-        const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-        if (!res.ok) {
-            console.warn(`[ODPT] 運行情報API エラー: HTTP ${res.status}`);
-            return null;
-        }
-        return await res.json();
-    } catch(err) {
-        console.warn('[ODPT] 運行情報取得失敗:', err.message);
-        return null;
-    }
-}
-
-async function fetchOdptStationTimetable(stationName) {
-    try {
-        const stUrl = `${getOdptBase()}odpt:Station?dc:title=${encodeURIComponent(stationName)}${odptKeyParam()}`;
-        const stRes = await fetch(stUrl, { signal: AbortSignal.timeout(10000) });
-        if (!stRes.ok) {
-            console.warn(`[ODPT] 駅検索API エラー: HTTP ${stRes.status}`);
-            return null;
-        }
-        const stations = await stRes.json();
-        if (!stations.length) { console.warn(`[ODPT] 駅「${stationName}」が見つかりません`); return null; }
-        const results = [];
-        for (const st of stations.slice(0, 3)) {
-            const ttUrl = `${getOdptBase()}odpt:StationTimetable?odpt:station=${encodeURIComponent(st['owl:sameAs'])}${odptKeyParam()}`;
-            const ttRes = await fetch(ttUrl, { signal: AbortSignal.timeout(10000) });
-            if (ttRes.ok) {
-                const tt = await ttRes.json();
-                results.push(...tt);
-            } else {
-                console.warn(`[ODPT] 時刻表API エラー: HTTP ${ttRes.status} (${st['owl:sameAs']})`);
-            }
-        }
-        return results.length ? results : null;
-    } catch(err) {
-        console.warn('[ODPT] 時刻表取得失敗:', err.message);
-        return null;
-    }
-}
-
-function renderOdptTrainInfo(data) {
-    if (!data || !data.length) return null;
-    let items = data;
-    let html = '<div class="result-card"><h3>運行情報（ODPT リアルタイム）</h3>';
-    const alerts = items.filter(i => i['odpt:trainInformationStatus'] && !['平常運転','平常'].includes(i['odpt:trainInformationText']?.trim()));
-    const normal = items.length - alerts.length;
-    if (alerts.length === 0) {
-        html += '<div class="result-content"><p style="color:#34d399;font-weight:600;">全路線 平常運転</p>';
-        html += `<p style="color:#94a3b8;">対象: ${items.length}路線を確認済み</p></div>`;
-    } else {
-        html += '<div class="result-content">';
-        alerts.forEach(a => {
-            const line = a['odpt:railway']?.split('.').pop() || '不明';
-            const op = a['odpt:operator']?.split('.').pop() || '';
-            const text = a['odpt:trainInformationText'] || '';
-            const status = a['odpt:trainInformationStatus']?.['ja'] || a['odpt:trainInformationStatus'] || '';
-            const cause = a['odpt:trainInformationCause']?.['ja'] || a['odpt:trainInformationCause'] || '';
-            html += `<div style="padding:8px 0;border-bottom:1px solid rgba(100,116,139,0.15);">`;
-            html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">`;
-            const code = getLineCode(line); const color = getLineColor(line);
-            if (code) html += `<span class="line-badge" style="background:${color};font-size:10px;min-width:24px;height:24px;">${esc(code)}</span>`;
-            html += `<strong style="color:#f1f5f9;">${esc(op)} ${esc(line)}</strong>`;
-            if (status) html += `<span class="route-badge" style="background:rgba(239,68,68,0.15);color:#fca5a5;">${esc(status)}</span>`;
-            html += `</div>`;
-            if (cause) html += `<div style="font-size:13px;color:#fbbf24;">原因: ${esc(cause)}</div>`;
-            html += `<div style="font-size:13px;color:#cbd5e1;">${esc(text).slice(0, 200)}</div>`;
-            html += `</div>`;
-        });
-        if (normal > 0) html += `<p style="color:#34d399;margin-top:8px;">他 ${normal}路線は平常運転</p>`;
-        html += '</div>';
-    }
-    html += `<div style="text-align:right;font-size:12px;color:#64748b;padding:6px 16px;">データ: ODPT公共交通オープンデータ</div></div>`;
-    return html;
-}
-
-function renderOdptTimetable(data, stationName) {
-    if (!data || !data.length) return null;
-    const now = new Date();
-    const nowMin = now.getHours() * 60 + now.getMinutes();
-    let html = `<div class="result-card"><h3>${esc(stationName)}駅 時刻表（ODPT リアルタイム）</h3><div class="result-content">`;
-    data.forEach(tt => {
-        const railway = tt['odpt:railway']?.split('.').pop() || '';
-        const dir = tt['odpt:railDirection']?.split('.').pop() || '';
-        const calendar = tt['odpt:calendar']?.split('.').pop() || '';
-        const objects = tt['odpt:stationTimetableObject'] || [];
-        if (!objects.length) return;
-        const color = getLineColor(railway); const code = getLineCode(railway);
-        const upcoming = objects.filter(o => {
-            if (!o['odpt:departureTime']) return false;
-            const [h, m] = o['odpt:departureTime'].split(':').map(Number);
-            return h * 60 + m >= nowMin;
-        }).slice(0, 10);
-        if (!upcoming.length) return;
-        html += `<div style="margin-bottom:14px;">`;
-        html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">`;
-        if (code) html += `<span class="line-badge" style="background:${color};">${esc(code)}</span>`;
-        html += `<strong style="color:${color};">${esc(railway)}</strong>`;
-        if (dir) html += `<span style="color:#94a3b8;font-size:13px;">${esc(dir)}方面</span>`;
-        if (calendar) html += `<span style="color:#64748b;font-size:12px;">(${esc(calendar)})</span>`;
-        html += `</div>`;
-        html += '<table><tr><th>発車</th><th>種別</th><th>行先</th></tr>';
-        upcoming.forEach(o => {
-            const time = o['odpt:departureTime'] || '';
-            const type = o['odpt:trainType']?.split('.').pop() || '';
-            const dest = (o['odpt:destinationStation'] || []).map(d => d.split('.').pop()).join('・') || '';
-            html += `<tr><td style="font-weight:700;font-variant-numeric:tabular-nums;">${esc(time)}</td><td>${esc(type)}</td><td>${esc(dest)}</td></tr>`;
-        });
-        html += '</table></div>';
-    });
-    html += `</div><div style="text-align:right;font-size:12px;color:#64748b;padding:6px 16px;">データ: ODPT公共交通オープンデータ</div></div>`;
-    return html;
-}
-
-// ===== OpenAI API =====
-const MODEL_FAST = 'gpt-4o-mini-search-preview';
-const MODEL_VERIFY = 'gpt-5.4-mini';
-
-async function callAPI(apiKey, input, ctxSize, maxTok) {
-    return callChatCompletionsAPI(apiKey, input, MODEL_FAST, maxTok);
-}
-
-// [修正7] AbortController/timeout修正: finallyでclearTimeoutを保証
-async function callChatCompletionsAPI(apiKey, input, model, maxTok, signal) {
-    const timeoutMs = (parseInt(document.getElementById('timeoutSec').value) || 120) * 1000;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const onExtAbort = () => controller.abort();
-    if (signal) signal.addEventListener('abort', onExtAbort);
-
-    console.log(`[API-ChatCompletions] model=${model} timeout=${timeoutMs}ms`);
-    try {
-        const body = {
-            model,
-            web_search_options: { user_location: { type: 'approximate', approximate: { country: 'JP' } } },
-            messages: [{ role: 'user', content: input }],
-            max_tokens: maxTok || 16000
-        };
-        // [修正1] response_format追加でJSON出力を強制（searchモデルでサポートされている場合）
-        // 注: gpt-4o-mini-search-previewはresponse_formatに非対応の可能性があるため、
-        // エラー時はresponse_format無しでリトライ
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
-            body: JSON.stringify(body),
-            signal: controller.signal
-        });
-        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API Error: ${res.status}`); }
-        const data = await res.json();
-        data.output_text = data.choices?.[0]?.message?.content || '';
-        const ann = data.choices?.[0]?.message?.annotations || [];
-        data.output = [{ type:'message', content:[{ annotations: ann.map(a => ({
-            type:'url_citation', url: a.url||a.url_citation?.url||'', title: a.title||a.url_citation?.title||''
-        }))}]}];
-        return data;
-    } catch(err) {
-        if (err.name === 'AbortError') throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。タイムアウト値を延長してください。`);
-        throw err;
-    } finally {
-        // [修正7] finallyで確実にクリーンアップ
-        clearTimeout(timer);
-        if (signal) signal.removeEventListener('abort', onExtAbort);
-    }
-}
-
-async function callResponsesAPI(apiKey, input, model, maxTok, signal, searchCtxSize, reasoningEffort) {
-    const timeoutMs = (parseInt(document.getElementById('timeoutSec').value) || 120) * 1000;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const onExtAbort = () => controller.abort();
-    if (signal) signal.addEventListener('abort', onExtAbort);
-
-    console.log(`[API-Responses] model=${model} search_ctx=${searchCtxSize||'medium'} reasoning=${reasoningEffort||'none'} timeout=${timeoutMs}ms`);
-    try {
-        const body = {
-            model,
-            tools: [{ type:'web_search', search_context_size: searchCtxSize || 'medium', user_location:{type:'approximate',country:'JP'} }],
-            input, max_output_tokens: maxTok || 16000
-        };
-        if (reasoningEffort) body.reasoning = { effort: reasoningEffort };
-        const res = await fetch('https://api.openai.com/v1/responses', {
-            method: 'POST',
-            headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
-            body: JSON.stringify(body),
-            signal: controller.signal
-        });
-        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API Error: ${res.status}`); }
-        const data = await res.json();
-        if (!data.output_text) {
-            if (data.text && typeof data.text === 'string') data.output_text = data.text;
-            else if (data.text && typeof data.text === 'object' && data.text.value) data.output_text = data.text.value;
-            if (!data.output_text && data.output && Array.isArray(data.output)) {
-                const texts = [];
-                for (const item of data.output) {
-                    if (item.type === 'message' && item.content) {
-                        for (const c of item.content) {
-                            if (c.type === 'output_text' && c.text) texts.push(c.text);
-                            else if (c.type === 'text' && c.text) texts.push(c.text);
-                            else if (typeof c.text === 'string') texts.push(c.text);
-                        }
-                    }
-                }
-                if (texts.length) data.output_text = texts.join('\n');
-            }
-        }
-        data.output_text = data.output_text || '';
-        return data;
-    } catch(err) {
-        if (err.name === 'AbortError') throw new Error(`タイムアウト（${Math.round(timeoutMs/1000)}秒）。タイムアウト値を延長してください。`);
-        throw err;
-    } finally {
-        // [修正7] finallyで確実にクリーンアップ
-        clearTimeout(timer);
-        if (signal) signal.removeEventListener('abort', onExtAbort);
-    }
-}
-
-// ===== ルート結果表示 =====
-function displayRouteResult(data){
-    const text=data.output_text||'';
-    let routes=null;
-    try{
-        let cleaned = text.replace(/【[^】]*】/g, '');
-        let jsonStr = cleaned;
-        const m1 = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (m1) jsonStr = m1[1];
-        else {
-            const m2 = cleaned.match(/\{[\s\S]*?"routes"\s*:\s*\[[\s\S]*\]/);
-            if (m2) {
-                let s = m2[0]; let depth = 0, end = 0;
-                for (let i = 0; i < s.length; i++) {
-                    if (s[i] === '{') depth++;
-                    else if (s[i] === '}') { depth--; if (depth === 0) { end = i + 1; break; } }
-                }
-                if (end > 0) jsonStr = s.slice(0, end);
-            }
-        }
-        jsonStr = jsonStr.trim().replace(/,\s*([}\]])/g, '$1');
-        const parsed = JSON.parse(jsonStr);
-        if (parsed.routes && parsed.routes.length) routes = parsed;
-        console.log('[Parse] JSON parse success, routes:', parsed.routes.length);
-    } catch(e) { console.log('[Parse] JSON parse failed, fallback to markdown', e); }
-
-    if(!routes){lastParsedRoutes=null;displayFallback(data);return;}
-    lastParsedRoutes = routes;
-
-    // [修正8] 到着駅の検証
-    if(lastSearchParams){
-        validateDestinationStation(routes, lastSearchParams.to);
-    }
-
-    renderRouteCards(routes, data);
-}
-
-// [修正8] 到着駅一致チェック
-function validateDestinationStation(routes, expectedTo) {
-    if (!expectedTo || !routes.routes) return;
-    const normalized = expectedTo.replace(/駅$/, '');
-    let mismatchFound = false;
-
-    routes.routes.forEach((r, i) => {
-        if (!r.segments || !r.segments.length) return;
-        // 最後のrideセグメントのtoを確認
-        const lastRide = [...r.segments].reverse().find(s => s.type === 'ride');
-        if (lastRide && lastRide.to) {
-            const actualTo = lastRide.to.replace(/駅$/, '');
-            if (actualTo !== normalized && !actualTo.includes(normalized) && !normalized.includes(actualTo)) {
-                mismatchFound = true;
-                r.notes = r.notes || [];
-                r.notes.unshift(`⚠ 到着駅が「${lastRide.to}」になっています。指定した「${expectedTo}」と異なる可能性があります`);
-            }
-        }
-    });
-
-    if (mismatchFound) {
-        const existingBanner = document.querySelector('.dest-warn-banner');
-        if (existingBanner) existingBanner.remove();
-        const banner = document.createElement('div');
-        banner.className = 'dest-warn-banner';
-        banner.textContent = `⚠ 到着駅が「${expectedTo}」と一致しない結果が含まれています。駅名を確認してください。`;
-        document.getElementById('results').prepend(banner);
-    }
-}
-
-function displayRouteResultFromParsed(routes){
-    renderRouteCards(routes, null);
-}
-
-function renderRouteCards(routes, data){
-    const div=document.getElementById('results');
-    let html='';
-
-    // [修正5] 区間分割検索の場合は運賃注記を表示
-    if(isSegmentedResult){
-        html += '<div class="fare-warn-banner">※ 経由駅指定のため区間ごとに運賃を合算しています。通し運賃（一括購入）の場合、実際の金額が異なることがあります。</div>';
-    }
-
-    routes.routes.forEach((r,i)=>{
-        html+=`<div class="route-card">`;
-        html+=`<div class="route-header">
-            <div><span class="route-label">ルート${i+1}</span></div>
-            <div class="route-time-big">${esc(r.departure)} <span style="color:#64748b;font-size:14px;">→</span> <span class="arr">${esc(r.arrival)}</span></div>
-            <div class="route-meta">
-                <span class="route-badge badge-duration">${esc(r.duration)}</span>
-                <span class="route-badge badge-transfer">乗換 ${r.transfers}回</span>
-                <span class="route-badge badge-fare">${esc(r.icFare||r.fare)}${isSegmentedResult?' (合算)':''}</span>
-                ${r.expressFare?`<span class="route-badge" style="background:rgba(239,68,68,0.1);color:#fca5a5;">特急 ${esc(r.expressFare)}</span>`:''}
-            </div>
-        </div>`;
-
-        html+=`<div class="route-timeline">`;
-        if(r.segments) r.segments.forEach((seg,si)=>{
-            if(seg.type==='ride'){
-                const color=getLineColor(seg.line);
-                const isFirst=si===0;
-                const isLast=si===r.segments.length-1;
-
-                html+=`<div class="tl-segment">
-                    <div class="tl-dot ${isFirst?'start':'transfer'}" style="border-color:${color};${isFirst?'background:'+color:''}"></div>
-                    <div class="tl-line" style="background:${color};${isLast?'bottom:18px':''}"></div>
-                    <div class="tl-station">
-                        <span class="tl-station-time">${esc(seg.departureTime)}</span>
-                        <span class="tl-station-name">${esc(seg.from)}</span>
-                        <span class="tl-station-platform">${esc(seg.fromPlatform||'')}</span>
-                    </div>
-                    <div class="tl-ride">
-                        <div class="tl-ride-line" style="background:${color}22;color:${color};border:1px solid ${color}44;">${(()=>{const code=seg.lineCode||getLineCode(seg.line);return code?`<span class="line-badge" style="background:${color};">${esc(code)}</span>`:''})()}${esc(seg.line)} ${seg.trainType?esc(seg.trainType):''}</div>
-                        <div class="tl-ride-detail">
-                            <span>${esc(seg.direction||'')}</span>
-                            ${seg.boardingPosition?`<span>乗車位置: ${esc(seg.boardingPosition)}</span>`:''}
-                            ${seg.doorSide?`<span>ドア: ${esc(seg.doorSide)}</span>`:''}
-                            ${seg.crowding?renderCrowding(seg.crowding):''}
-                        </div>
-                        ${seg.delay?`<div class="tl-delay"><span class="tl-delay-icon">▲</span><span class="tl-delay-text">遅延${seg.delay.minutes?seg.delay.minutes+'分':''}</span><span class="tl-delay-reason">${esc(seg.delay.reason||'')}</span></div>`:''}
-                        ${seg.stops&&seg.stops.length?`
-                        <div class="tl-stops-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">
-                            <span class="arrow">&#9654;</span> ${seg.stops.length}駅
-                        </div>
-                        <div class="tl-stops-list">
-                            ${seg.stops.map(st=>`<div class="tl-stop"><span class="tl-stop-dot" style="background:${color};"></span><span class="tl-stop-time">${esc(st.time)}</span><span class="tl-stop-name">${esc(st.name)}</span></div>`).join('')}
-                        </div>`:''}
-                    </div>
-                </div>`;
-
-                const nextSeg = r.segments[si+1];
-                if(isLast || (nextSeg && nextSeg.type==='transfer')){
-                    const arrName = (!isLast && nextSeg && nextSeg.station) ? nextSeg.station : seg.to;
-                    html+=`<div class="tl-segment" style="padding-bottom:${isLast?'0':'4px'};">
-                        <div class="tl-dot ${isLast?'end':'transfer'}" style="${isLast?'':'border-color:#fbbf24;background:#fbbf24;'}"></div>
-                        <div class="tl-station">
-                            <span class="tl-station-time">${esc(seg.arrivalTime)}</span>
-                            <span class="tl-station-name">${esc(arrName)}</span>
-                            <span class="tl-station-platform">${esc(seg.toPlatform||'')}</span>
-                        </div>
-                    </div>`;
-                }
-            } else if(seg.type==='transfer'){
-                html+=`<div class="tl-segment" style="padding-left:28px;padding-bottom:0;">
-                    <div class="tl-transfer-box">乗換 ${esc(seg.station)} ${seg.minutes?seg.minutes+'分':''}</div>
-                </div>`;
-            }
-        });
-        html+=`</div>`;
-
-        if(r.notes&&r.notes.length&&r.notes[0]){
-            html+=`<div class="route-notes">${r.notes.map(n=>`<p${n.startsWith('⚠')?' class="warn"':''}>${esc(n)}</p>`).join('')}</div>`;
-        }
-        html+=`</div>`;
-    });
-
-    if(routes.serviceInfo&&routes.serviceInfo!=='平常運転'){
-        html+=`<div class="route-notes" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:10px 14px;margin-bottom:10px;"><p class="warn">${esc(routes.serviceInfo)}</p></div>`;
-    }
-
-    if(data) html+=buildCitationsHtml(data);
-    html+=`<div style="text-align:right;font-size:12px;color:#64748b;margin-top:4px;">Step1: GPT-4o mini search → Step2: GPT-5.4 mini で検証</div>`;
-    div.innerHTML=html;
-}
-
-function displayFallback(data){
-    const div=document.getElementById('results');
-    const text=data.output_text||'';
-    div.innerHTML=`<div class="result-card"><h3>検索結果</h3><div class="result-content">${mdToHtml(text)}</div>${buildCitationsHtml(data)}</div>`;
-}
-
-function buildCitationsHtml(data){
-    let citations=[];
-    if(data&&data.output&&Array.isArray(data.output))for(const item of data.output)if(item.type==='message'&&item.content)for(const c of item.content)if(c.annotations)for(const a of c.annotations)if(a.type==='url_citation'&&a.url)citations.push({url:a.url,title:a.title||a.url});
-    if(!citations.length)return '';
-    const u=[...new Map(citations.map(c=>[c.url,c])).values()];
-    return `<div class="sources"><h4>参考ソース</h4>${u.map(c=>`<a href="${escapeHtml(c.url)}" target="_blank">${escapeHtml(c.title)}</a>`).join('')}</div>`;
-}
-
-function mdToHtml(md){if(!md)return '<p>結果を取得できませんでした。</p>';let h=escapeHtml(md);h=h.replace(/```[\s\S]*?```/g,m=>{const c=m.replace(/```\w*\n?/,'').replace(/```$/,'');return `<pre><code>${c}</code></pre>`;});h=h.replace(/((\|[^\n]+\|\n)+)/g,tbl=>{const rows=tbl.trim().split('\n');if(rows.length<2)return tbl;let t='<table>';rows.forEach((r,i)=>{if(r.match(/^\|[\s\-:|]+\|$/))return;const cells=r.split('|').filter((_,j,a)=>j>0&&j<a.length-1);const tag=i===0?'th':'td';t+='<tr>'+cells.map(c=>`<${tag}>${c.trim()}</${tag}>`).join('')+'</tr>';});return t+'</table>';});h=h.replace(/^####\s(.+)$/gm,'<h4>$1</h4>');h=h.replace(/^###\s(.+)$/gm,'<h3>$1</h3>');h=h.replace(/^##\s(.+)$/gm,'<h2>$1</h2>');h=h.replace(/^#\s(.+)$/gm,'<h1>$1</h1>');h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');h=h.replace(/^- (.+)$/gm,'<li>$1</li>');h=h.replace(/^(\d+)\.\s(.+)$/gm,'<li>$2</li>');h=h.replace(/((<li>.*<\/li>\n?)+)/g,'<ul>$1</ul>');h=h.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');h=h.replace(/\n\n/g,'</p><p>');h='<p>'+h+'</p>';h=h.replace(/<p>\s*<\/p>/g,'');h=h.replace(/<p>\s*(<h[1-6]>)/g,'$1').replace(/(<\/h[1-6]>)\s*<\/p>/g,'$1');h=h.replace(/<p>\s*(<table>)/g,'$1').replace(/(<\/table>)\s*<\/p>/g,'$1');h=h.replace(/<p>\s*(<ul>)/g,'$1').replace(/(<\/ul>)\s*<\/p>/g,'$1');return h;}
-function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
-function esc(s){return s==null?'':escapeHtml(String(s));}
-
-// [修正4] 混雑度: 「推定」ラベルを追加
-function renderCrowding(val){
-    const n=Math.max(1,Math.min(5,parseInt(val)||3));
-    const labels=['','空いている','余裕あり','普通','混雑','非常に混雑'];
-    const icons=Array.from({length:5},(_,i)=>`<span class="ci${i<n?' on':''}">\u{1F9CD}</span>`).join('');
-    return `<span class="crowd-bar crowd-${n}"><span class="crowd-icons">${icons}</span><span class="crowd-label">${labels[n]}</span><span class="crowd-estimate-label">（推定）</span></span>`;
-}
-
-// ===== 徒歩ナビ・コピー・共有 =====
-function openWalkNav(){if(!lastSearchParams)return;window.open(`https://www.google.com/maps/dir/${encodeURIComponent(lastSearchParams.from+'駅')}/${encodeURIComponent(lastSearchParams.to+'駅')}/@?dirflg=w`,'_blank');}
-function copyResult(){if(!lastResultText)return;navigator.clipboard.writeText(lastResultText).then(()=>alert('コピーしました')).catch(()=>{});}
-function shareResult(){if(!lastResultText||!navigator.share){copyResult();return;}navigator.share({title:`${lastSearchParams.from}→${lastSearchParams.to}`,text:lastResultText.slice(0,500)+'...'}).catch(()=>{});}
-
-// ===== 降車アラーム =====
-function setAlarm(){if(!lastSearchParams)return;const min=prompt('到着の何分前にアラーム？','3');if(!min||isNaN(min))return;startAlarm(parseInt(min)*60,`${lastSearchParams.to}駅の${min}分前`);if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();}
-function startAlarm(sec,label){cancelAlarm();let rem=sec;const bar=document.getElementById('alarmBar'),tEl=document.getElementById('alarmTime'),lEl=document.getElementById('alarmLabel');bar.classList.add('active');lEl.textContent=label;function up(){tEl.textContent=`${String(Math.floor(rem/60)).padStart(2,'0')}:${String(rem%60).padStart(2,'0')}`;if(rem<=0){cancelAlarm();try{if('vibrate' in navigator)navigator.vibrate([500,200,500,200,500]);const a=new AudioContext();[800,1000,800,1000,800].forEach((f,i)=>{const o=a.createOscillator();o.frequency.value=f;o.connect(a.destination);o.start(a.currentTime+i*0.3);o.stop(a.currentTime+i*0.3+0.2);});}catch{}if('Notification' in window&&Notification.permission==='granted')new Notification('降車アラーム',{body:label+'\nまもなく到着します！'});alert(`${label}\nまもなく到着します！`);return;}rem--;}up();alarmTimer=setInterval(up,1000);}
-function cancelAlarm(){if(alarmTimer){clearInterval(alarmTimer);alarmTimer=null;}document.getElementById('alarmBar').classList.remove('active');}
-
-// ===== 旅費メモ =====
-function loadExpenses(){renderExpenses(JSON.parse(localStorage.getItem('expenses')||'[]'));}
-function renderExpenses(list){const bar=document.getElementById('expenseBar');if(!list.length){bar.style.display='none';return;}bar.style.display='block';document.getElementById('expenseList').innerHTML=list.map((e,i)=>`<div class="item"><span>${escapeHtml(e.label)}</span><span>¥${e.amount.toLocaleString()} <span class="del" style="cursor:pointer;color:#64748b;" onclick="removeExpense(${i})">&times;</span></span></div>`).join('');document.getElementById('expenseTotal').textContent='¥'+list.reduce((s,e)=>s+e.amount,0).toLocaleString();}
-function addExpense(label,amount){const list=JSON.parse(localStorage.getItem('expenses')||'[]');list.push({label,amount,date:new Date().toISOString().split('T')[0]});localStorage.setItem('expenses',JSON.stringify(list));renderExpenses(list);}
-function removeExpense(i){const list=JSON.parse(localStorage.getItem('expenses')||'[]');list.splice(i,1);localStorage.setItem('expenses',JSON.stringify(list));renderExpenses(list);}
-function clearExpenses(){if(!confirm('旅費メモをクリアしますか？'))return;localStorage.removeItem('expenses');renderExpenses([]);}
-function copyExpenses(){const list=JSON.parse(localStorage.getItem('expenses')||'[]');navigator.clipboard.writeText(list.map(e=>`${e.date} ${e.label}: ¥${e.amount.toLocaleString()}`).join('\n')+`\n合計: ¥${list.reduce((s,e)=>s+e.amount,0).toLocaleString()}`).then(()=>alert('コピーしました'));}
-function addExpenseFromResult(){if(!lastSearchParams)return;const label=`${lastSearchParams.from}→${lastSearchParams.to}`;const a=prompt(`「${label}」の運賃（数字のみ）:`,'');if(!a||isNaN(a))return;addExpense(label,parseInt(a));}
-
-// ===== お気に入り =====
-function getFavKey(){return lastSearchParams?`${lastSearchParams.from}→${lastSearchParams.to}`:null;}
-function toggleFavorite(){const key=getFavKey();if(!key)return;let favs=JSON.parse(localStorage.getItem('route_favs')||'[]');if(favs.includes(key))favs=favs.filter(f=>f!==key);else{favs.unshift(key);if(favs.length>20)favs=favs.slice(0,20);}localStorage.setItem('route_favs',JSON.stringify(favs));updateFavBtn();loadFavorites();}
-function updateFavBtn(){const key=getFavKey(),btn=document.getElementById('favBtn'),favs=JSON.parse(localStorage.getItem('route_favs')||'[]');if(key&&favs.includes(key)){btn.innerHTML='&#9733; お気に入り';btn.classList.add('active');}else{btn.innerHTML='&#9734; お気に入り';btn.classList.remove('active');}}
-function loadFavorites(){const favs=JSON.parse(localStorage.getItem('route_favs')||'[]'),sec=document.getElementById('favSection'),list=document.getElementById('favList');if(!favs.length){sec.style.display='none';return;}sec.style.display='block';list.innerHTML=favs.map(f=>{const[a,b]=f.split('→');return `<span class="tag fav" onclick="useFav('${ea(a)}','${ea(b)}')">${escapeHtml(f)}<span class="del" onclick="event.stopPropagation();removeFav('${ea(f)}')">&times;</span></span>`;}).join('');}
-function useFav(a,b){document.getElementById('fromStation').value=a;document.getElementById('toStation').value=b;}
-function removeFav(k){let f=JSON.parse(localStorage.getItem('route_favs')||'[]');f=f.filter(x=>x!==k);localStorage.setItem('route_favs',JSON.stringify(f));loadFavorites();updateFavBtn();}
-
-// ===== 検索履歴 =====
-function addHistory(a,b){let h=JSON.parse(localStorage.getItem('route_history')||'[]');const e=`${a} → ${b}`;h=h.filter(x=>x!==e);h.unshift(e);if(h.length>15)h=h.slice(0,15);localStorage.setItem('route_history',JSON.stringify(h));loadHistory();}
-function loadHistory(){const h=JSON.parse(localStorage.getItem('route_history')||'[]'),sec=document.getElementById('historySection'),list=document.getElementById('historyList');if(!h.length){sec.style.display='none';return;}sec.style.display='block';list.innerHTML=h.map(x=>{const[a,b]=x.split(' → ');return `<span class="tag" onclick="useFav('${ea(a)}','${ea(b)}')">${escapeHtml(x)}</span>`;}).join('');}
-
-// ===== [修正10] キャッシュ: 検索条件をキーに含める =====
-function getCacheKey(params) {
-    if (!params) return null;
-    return `cache_${params.from}_${params.to}_${params.date}_${params.time}_${params.via||''}`;
-}
-
-function saveCacheWithKey(params, text, routes) {
-    try {
-        const key = getCacheKey(params);
-        if (!key) return;
-        const entry = { text, routes: routes||null, time: Date.now(), date: params.date, from: params.from, to: params.to };
-        localStorage.setItem('cached_result', JSON.stringify({ key, ...entry }));
-    } catch(e) { console.warn('[Cache] 保存失敗:', e.message); }
-}
-
-function loadCachedResult() {
-    try {
-        const c = JSON.parse(localStorage.getItem('cached_result') || 'null');
-        if (!c) return;
-
-        // [修正10] 日付が今日と異なるキャッシュは無効化
-        const today = new Date().toISOString().split('T')[0];
-        if (c.date && c.date !== today) {
-            console.log('[Cache] 日付が異なるため無効化:', c.date, '!=', today);
-            localStorage.removeItem('cached_result');
-            return;
-        }
-
-        // 1時間以内のキャッシュのみ使用
-        if (Date.now() - c.time > 3600000) {
-            localStorage.removeItem('cached_result');
-            return;
-        }
-
-        if (c.routes && c.routes.routes && c.routes.routes.length) {
-            lastParsedRoutes = c.routes;
-            lastResultText = c.text || '';
-            renderRouteCards(c.routes, {output_text: c.text || ''});
-            document.getElementById('toolbar').style.display = 'flex'; updateFavBtn();
-        } else if (typeof c.text === 'string' && c.text) {
-            lastResultText = c.text;
-            document.getElementById('results').innerHTML = `<div class="result-card" style="opacity:0.7;"><h3>前回の検索結果（${esc(c.from||'')}→${esc(c.to||'')}）</h3><div class="result-content">${mdToHtml(c.text)}</div></div>`;
-        }
-    } catch(e) { console.warn('[Cache] 復元失敗:', e.message); }
-}
-
-// ===== ユーティリティ =====
-function showError(msg){document.getElementById('results').innerHTML=`<div class="error-msg">${escapeHtml(msg)}</div>`;}
-function ea(s){return s.replace(/'/g,"\\'").replace(/"/g,'&quot;');}
-
-// キャッシュ読み込み
-window.addEventListener('load', loadCachedResult);
-
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('searchBtn').disabled){const a=document.activeElement;if(['fromStation','toStation','viaStation','trainName'].includes(a.id))doSearch();}});
-</script>
-</body>
+        <p id="modeHint" class="sub-text" style="margin: 8px 0"></p>
+        <button class="search-btn" id="searchBtn" type="submit">
+          経路を検索</button
+        ><button
+          class="tool-btn"
+          id="cancelSearch"
+          type="button"
+          onclick="cancelSearch()"
+          hidden
+        >
+          検索を中止
+        </button>
+      </form>
+      <div class="alarm-bar" id="alarmBar">
+        <span class="alarm-time" id="alarmTime"></span
+        ><span class="alarm-label" id="alarmLabel"></span
+        ><button class="alarm-cancel" onclick="cancelAlarm()">解除</button>
+      </div>
+      <div class="verify-badge" id="verifyBadge" role="status"></div>
+      <div class="toolbar" id="toolbar" hidden>
+        <button class="tool-btn" id="shiftBack" onclick="searchShift(-1)">
+          5分前の条件</button
+        ><button class="tool-btn" id="shiftForward" onclick="searchShift(1)">
+          5分後の条件</button
+        ><button class="tool-btn" id="walkBtn" onclick="openWalkNav()">
+          徒歩地図</button
+        ><button class="tool-btn" onclick="copyResult()">コピー</button
+        ><button class="tool-btn" onclick="shareResult()">共有</button
+        ><button class="tool-btn orange" id="favBtn" onclick="toggleFavorite()">
+          ☆ お気に入り</button
+        ><button
+          class="tool-btn orange"
+          id="alarmBtn"
+          onclick="setAlarm()"
+          hidden
+        >
+          降車アラーム</button
+        ><button
+          class="tool-btn green2"
+          id="expenseBtn"
+          onclick="addExpenseFromResult()"
+        >
+          旅費メモ
+        </button>
+      </div>
+      <section
+        id="results"
+        aria-label="検索結果"
+        aria-live="polite"
+        aria-busy="false"
+      ></section>
+      <section class="expense-bar" id="expenseBar" hidden>
+        <h4>旅費メモ</h4>
+        <div class="expense-list" id="expenseList"></div>
+        <div class="expense-total">
+          <span>合計</span><span id="expenseTotal"></span>
+        </div>
+        <div class="expense-actions">
+          <button onclick="copyExpenses()">コピー</button
+          ><button onclick="clearExpenses()">クリア</button>
+        </div>
+      </section>
+      <section id="favSection" class="card" hidden>
+        <h2 class="section-title">お気に入り</h2>
+        <div id="favList"></div>
+      </section>
+      <section id="historySection" class="card" hidden>
+        <h2 class="section-title">最近の検索</h2>
+        <div id="historyList"></div>
+      </section>
+      <footer class="sub-text" style="padding: 12px 0">
+        時刻・運賃は提供元の掲載内容に基づきます。運行情報の対象範囲と更新日時を確認してください。
+      </footer>
+    </main>
+  </body>
 </html>

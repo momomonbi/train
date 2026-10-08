@@ -1,0 +1,14 @@
+{
+  "name": "train",
+  "version": "0.2.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test test/*.test.cjs",
+    "test:mutations": "node test/mutations.cjs",
+    "check": "node --check app.js && node --check train-core.js && node --check server.mjs && node --check providers.mjs && node --check test-api.js && node --check holidays.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

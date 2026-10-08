@@ -1,79 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head><meta charset="UTF-8"><title>API Test</title></head>
-<body style="font-family:monospace;background:#1e293b;color:#e2e8f0;padding:20px;">
-<h2>API呼び出しテスト（修正版）</h2>
-<p>APIキー: <input type="password" id="key" style="width:400px;" /></p>
-<button onclick="runTest()">川間→大宮 テスト実行</button>
-<pre id="out" style="background:#0f172a;padding:16px;border-radius:8px;white-space:pre-wrap;max-height:600px;overflow:auto;"></pre>
-
-<script>
-async function runTest(){
-    const key = document.getElementById('key').value.trim();
-    if(!key){alert('APIキーを入力');return;}
-    const out = document.getElementById('out');
-    out.textContent = '送信中...\n';
-
-    const prompt = '「川間駅から大宮駅」の電車での行き方をウェブ検索で調べてください。路線名・乗換駅・所要時間を簡潔に回答してください。';
-
-    // Test 1: gpt-5.4-mini + web_search（正式版ツール）
-    out.textContent += '\n=== Test1: gpt-5.4-mini + web_search (Responses API) ===\n';
-    try {
-        const res1 = await fetch('https://api.openai.com/v1/responses', {
-            method:'POST',
-            headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-            body:JSON.stringify({
-                model:'gpt-5.4-mini',
-                tools:[{type:'web_search',search_context_size:'high',user_location:{type:'approximate',country:'JP'}}],
-                input:prompt, max_output_tokens:4000
-            })
-        });
-        out.textContent += `status: ${res1.status}\n`;
-        const d1 = await res1.json();
-        out.textContent += `output_text: "${(d1.output_text||'').slice(0,500)}"\n`;
-        if(d1.error) out.textContent += `error: ${JSON.stringify(d1.error)}\n`;
-    } catch(e) { out.textContent += `Error: ${e.message}\n`; }
-
-    // Test 2: gpt-5.4 + web_search（検証用モデル）
-    out.textContent += '\n=== Test2: gpt-5.4 + web_search (Responses API) ===\n';
-    try {
-        const res2 = await fetch('https://api.openai.com/v1/responses', {
-            method:'POST',
-            headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-            body:JSON.stringify({
-                model:'gpt-5.4',
-                tools:[{type:'web_search',search_context_size:'high',user_location:{type:'approximate',country:'JP'}}],
-                input:prompt, max_output_tokens:4000
-            })
-        });
-        out.textContent += `status: ${res2.status}\n`;
-        const d2 = await res2.json();
-        out.textContent += `output_text: "${(d2.output_text||'').slice(0,500)}"\n`;
-        if(d2.error) out.textContent += `error: ${JSON.stringify(d2.error)}\n`;
-    } catch(e) { out.textContent += `Error: ${e.message}\n`; }
-
-    // Test 3: gpt-4o-mini-search-preview (Chat Completions) - フォールバック
-    out.textContent += '\n=== Test3: gpt-4o-mini-search-preview (Chat Completions) ===\n';
-    try {
-        const res3 = await fetch('https://api.openai.com/v1/chat/completions', {
-            method:'POST',
-            headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-            body:JSON.stringify({
-                model:'gpt-4o-mini-search-preview',
-                web_search_options:{user_location:{type:'approximate',approximate:{country:'JP'}}},
-                messages:[{role:'user',content:prompt}],
-                max_tokens:4000
-            })
-        });
-        out.textContent += `status: ${res3.status}\n`;
-        const d3 = await res3.json();
-        const content = d3.choices?.[0]?.message?.content || '';
-        out.textContent += `content: "${content.slice(0,500)}"\n`;
-        if(d3.error) out.textContent += `error: ${JSON.stringify(d3.error)}\n`;
-    } catch(e) { out.textContent += `Error: ${e.message}\n`; }
-
-    out.textContent += '\n=== テスト完了 ===\n';
-}
-</script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API接続テスト</title>
+    <style>
+      body {
+        font: 16px/1.7 system-ui;
+        background: #0f172a;
+        color: #e2e8f0;
+        max-width: 720px;
+        margin: 30px auto;
+        padding: 16px;
+      }
+      a {
+        color: #60a5fa;
+      }
+      select,
+      button {
+        font: inherit;
+        padding: 10px;
+        border-radius: 8px;
+        background: #1e293b;
+        color: #e2e8f0;
+        border: 1px solid #64748b;
+      }
+      pre {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        background: #1e293b;
+        padding: 16px;
+      }
+      button:focus-visible {
+        outline: 3px solid #60a5fa;
+      }
+    </style>
+    <script src="train-core.js" defer></script>
+    <script src="test-api.js" defer></script>
+  </head>
+  <body>
+    <a href="index.html">← 乗換検索へ戻る</a>
+    <h1>API接続テスト</h1>
+    <p>
+      乗換検索のAPI設定で入力したOpenAIキーを使います。ボタン1回につき1回だけ呼び出します。ウェブ検索を含むAPI料金が発生します。
+    </p>
+    <p>このテストでは鉄道の時刻・運賃を推測させません。</p>
+    <label for="model">モデル</label
+    ><select id="model">
+      <option value="gpt-6-luna">GPT-6 Luna</option>
+      <option value="gpt-6.1-sol">GPT-6.1 Sol</option></select
+    ><button id="test">接続をテスト（API課金）</button
+    ><button id="cancel" hidden>中止</button>
+    <pre id="result" role="status">未実行</pre>
+  </body>
 </html>
