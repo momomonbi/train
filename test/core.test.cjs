@@ -37,6 +37,17 @@ test("無料検索は日時・到着／始発／終電・経由・除外を保�
     assert.equal(u.searchParams.get("lb"), "0");
   }
   assert.throws(() => C.yahooUrl({ ...params, via: "春日部、北千住" }), /1駅/);
+  // Confirmed against Yahoo's rendered result links: 安=s=1, 楽=s=2.
+  assert.equal(
+    new URL(C.yahooUrl({ ...params, priority: "cheap" })).searchParams.get("s"),
+    "1",
+  );
+  assert.equal(
+    new URL(
+      C.yahooUrl({ ...params, priority: "less_transfer" }),
+    ).searchParams.get("s"),
+    "2",
+  );
 });
 test("不明金額をゼロにしない・課金単位を捏造しない", () => {
   assert.equal(C.money("要確認"), null);

@@ -123,7 +123,7 @@
       ticket: "ic",
       expkind: "1",
       s:
-        { recommended: "0", fast: "0", cheap: "2", less_transfer: "1" }[
+        { recommended: "0", fast: "0", cheap: "1", less_transfer: "2" }[
           p.priority
         ] || "0",
       ws:
